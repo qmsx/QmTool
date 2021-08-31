@@ -158,6 +158,7 @@ public class IdcardUtils {
                 return tipInfo;
             }
         }
+
         // 判断出生年月是否有效
         String strYear = Ai.substring(6, 10);// 年份
         String strMonth = Ai.substring(10, 12);// 月份
