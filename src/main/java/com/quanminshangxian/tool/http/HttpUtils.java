@@ -1,142 +1,250 @@
 package com.quanminshangxian.tool.http;
 
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.*;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.config.SocketConfig;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
-/**
- * http 请求工具类
- */
 public class HttpUtils {
 
+    public static final int CONNECTION_REQUEST_TIMEOUT = 30 * 1000; //从连接池获取连接的超时时间
+    public static final int CONNECTION_TIMEOUT = 60 * 1000;  //握手的超时时间
+    public static final int SOCKET_TIMEOUT = 60 * 1000; //数据包最大的间隔时间
+    public static final int SO_TIMEOUT = 60 * 1000; //等待数据超时时间
+
+    private static PoolingHttpClientConnectionManager poolConnManager;
+    private static CloseableHttpClient closeableHttpClient;
+
     /**
-     * get请求
-     *
-     * @param path
-     * @param param
-     * @return
+     * 初始化块
      */
-    public static String get(String path, Map<String, Object> param) {
+    static {
+        ConnectionSocketFactory plainConnectionSocketFactory = PlainConnectionSocketFactory.getSocketFactory();
+        LayeredConnectionSocketFactory sslConnectionSocketFactory = SSLConnectionSocketFactory.getSocketFactory();
+        Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
+                .register("http", plainConnectionSocketFactory)
+                .register("https", sslConnectionSocketFactory)
+                .build();
+        poolConnManager = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
+        // Increase max total connection to 200
+        poolConnManager.setMaxTotal(200);
+        // Increase default max connection per route to 20
+        poolConnManager.setDefaultMaxPerRoute(20);
+        SocketConfig socketConfig = SocketConfig.custom().setSoTimeout(SO_TIMEOUT).build();
+        poolConnManager.setDefaultSocketConfig(socketConfig);
+
+        RequestConfig requestConfig = RequestConfig.custom().setConnectionRequestTimeout(CONNECTION_REQUEST_TIMEOUT)
+                .setConnectTimeout(CONNECTION_TIMEOUT).setSocketTimeout(SOCKET_TIMEOUT).build();
+        closeableHttpClient = HttpClients.custom()
+                .setConnectionManager(poolConnManager).setDefaultRequestConfig(requestConfig).build();
+        if (poolConnManager.getTotalStats() != null) {
+            System.out.println("new client pool " + poolConnManager.getTotalStats().toString());
+        }
+    }
+
+    public static CloseableHttpClient getHttpClient() {
+        return closeableHttpClient;
+    }
+
+    /**
+     * 发送get请求
+     */
+    public static String sendGetRequest(String url) {
+        HttpGet httpRequest = new HttpGet(url);
+        CloseableHttpResponse httpResponse = null;
         try {
-            if (param != null) {
-                StringBuffer paramBuffer = new StringBuffer();
-                int i = 0;
-                for (String key : param.keySet()) {
-                    if (i == 0) {
-                        paramBuffer.append("?");
-                    } else {
-                        paramBuffer.append("&");
-                    }
-                    paramBuffer.append(key).append("=").append(param.get(key));
-                    i++;
-                }
-                path += paramBuffer;
+            httpResponse = getHttpClient().execute(httpRequest);
+            int status = httpResponse.getStatusLine().getStatusCode();
+            if (status >= 200 && status < 300) {
+                return EntityUtils.toString(httpResponse.getEntity());
+            } else {
+                httpRequest.abort();
             }
-            URL url = new URL(path);    // 把字符串转换为URL请求地址
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();// 打开连接
-            connection.connect();// 连接会话
-            // 获取输入流
-            BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String line;
-            StringBuilder sb = new StringBuilder();
-            while ((line = br.readLine()) != null) {// 循环读取流
-                sb.append(line);
-            }
-            br.close();// 关闭流
-            connection.disconnect();// 断开连接
-            return sb.toString();
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println("失败!");
-            return null;
+        } finally {
+            httpRequest.releaseConnection();
+            try {
+                if (httpResponse != null) {
+                    httpResponse.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
+        return null;
     }
 
     /**
-     * post请求
-     *
-     * @param httpUrl
-     * @param param
-     * @return
+     * 发送post请求
      */
-    public static String doPost(String httpUrl, String param) {
-
-        HttpURLConnection connection = null;
-        InputStream is = null;
-        OutputStream os = null;
-        BufferedReader br = null;
-        String result = null;
+    public static String sendPostRequest(String url, Map<String, String> params) {
+        HttpPost httpRequest = new HttpPost(url);
+        CloseableHttpResponse httpResponse = null;
         try {
-            URL url = new URL(httpUrl);
-            // 通过远程url连接对象打开连接
-            connection = (HttpURLConnection) url.openConnection();
-            // 设置连接请求方式
-            connection.setRequestMethod("POST");
-            // 设置连接主机服务器超时时间：15000毫秒
-            connection.setConnectTimeout(15000);
-            // 设置读取主机服务器返回数据超时时间：60000毫秒
-            connection.setReadTimeout(60000);
-
-            // 默认值为：false，当向远程服务器传送数据/写数据时，需要设置为true
-            connection.setDoOutput(true);
-            // 默认值为：true，当前向远程服务读取数据时，设置为true，该参数可有可无
-            connection.setDoInput(true);
-            // 设置传入参数的格式:请求参数应该是 name1=value1&name2=value2 的形式。
-            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-            // 设置鉴权信息：Authorization: Bearer da3efcbf-0845-4fe3-8aba-ee040be542c0
-            connection.setRequestProperty("Authorization", "Bearer da3efcbf-0845-4fe3-8aba-ee040be542c0");
-            // 通过连接对象获取一个输出流
-            os = connection.getOutputStream();
-            // 通过输出流对象将参数写出去/传输出去,它是通过字节数组写出的
-            os.write(param.getBytes());
-            // 通过连接对象获取一个输入流，向远程读取
-            if (connection.getResponseCode() == 200) {
-
-                is = connection.getInputStream();
-                // 对输入流对象进行包装:charset根据工作项目组的要求来设置
-                br = new BufferedReader(new InputStreamReader(is, "UTF-8"));
-
-                StringBuffer sbf = new StringBuffer();
-                String temp = null;
-                // 循环遍历一行一行读取数据
-                while ((temp = br.readLine()) != null) {
-                    sbf.append(temp);
-                    sbf.append("\r\n");
-                }
-                result = sbf.toString();
+            List<NameValuePair> list = new ArrayList<NameValuePair>();
+            for (String key : params.keySet()) {
+                list.add(new BasicNameValuePair(key, params.get(key)));
             }
-        } catch (IOException e) {
+            httpRequest.setEntity(new UrlEncodedFormEntity(list, "UTF-8"));
+            httpResponse = getHttpClient().execute(httpRequest);
+            int status = httpResponse.getStatusLine().getStatusCode();
+            if (status >= 200 && status < 300) {
+                return EntityUtils.toString(httpResponse.getEntity());
+            } else {
+                httpRequest.abort();
+            }
+        } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            // 关闭资源
-            if (null != br) {
-                try {
-                    br.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
+            httpRequest.releaseConnection();
+            try {
+                if (httpResponse != null) {
+                    httpResponse.close();
                 }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-            if (null != os) {
-                try {
-                    os.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (null != is) {
-                try {
-                    is.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            // 断开与远程地址url的连接
-            connection.disconnect();
         }
-        return result;
+        return null;
     }
 
+    /**
+     * 发送post请求
+     */
+    public static String sendPostRequest(String url, String params) {
+        HttpPost httpRequest = new HttpPost(url);
+        CloseableHttpResponse httpResponse = null;
+        try {
+            if (params != null) {
+                httpRequest.setEntity(new StringEntity(params, "UTF-8"));
+            }
+            httpResponse = getHttpClient().execute(httpRequest);
+            int status = httpResponse.getStatusLine().getStatusCode();
+            if (status >= 200 && status < 300) {
+                return EntityUtils.toString(httpResponse.getEntity());
+            } else {
+                httpRequest.abort();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            httpRequest.releaseConnection();
+            try {
+                if (httpResponse != null) {
+                    httpResponse.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 发送post请求
+     */
+    public static String sendPostRequestForJson(String url, String params) {
+        HttpPost httpRequest = new HttpPost(url);
+        CloseableHttpResponse httpResponse = null;
+        try {
+            httpRequest.setHeader("content-type", "application/json");
+            if (params != null) {
+                httpRequest.setEntity(new StringEntity(params, "UTF-8"));
+            }
+            httpResponse = getHttpClient().execute(httpRequest);
+            int status = httpResponse.getStatusLine().getStatusCode();
+            if (status >= 200 && status < 300) {
+                return EntityUtils.toString(httpResponse.getEntity());
+            } else {
+                httpRequest.abort();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            httpRequest.releaseConnection();
+            try {
+                if (httpResponse != null) {
+                    httpResponse.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
+    }
+
+    public static String sendPutRequest(String url, String params) {
+        HttpPut httpRequest = new HttpPut(url);
+        CloseableHttpResponse httpResponse = null;
+        try {
+            if (params != null) {
+                httpRequest.setEntity(new StringEntity(params, "UTF-8"));
+            }
+            httpResponse = getHttpClient().execute(httpRequest);
+            int status = httpResponse.getStatusLine().getStatusCode();
+            if (status >= 200 && status < 300) {
+                return EntityUtils.toString(httpResponse.getEntity());
+            } else {
+                httpRequest.abort();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            httpRequest.releaseConnection();
+            try {
+                if (httpResponse != null) {
+                    httpResponse.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
+    }
+
+    public static String sendDeleteRequest(String url) {
+        HttpDelete httpRequest = new HttpDelete(url);
+        CloseableHttpResponse httpResponse = null;
+        try {
+            httpResponse = getHttpClient().execute(httpRequest);
+            int status = httpResponse.getStatusLine().getStatusCode();
+            if (status >= 200 && status < 300) {
+                return EntityUtils.toString(httpResponse.getEntity());
+            } else {
+                httpRequest.abort();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            httpRequest.releaseConnection();
+            try {
+                if (httpResponse != null) {
+                    httpResponse.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
+    }
 
 }
