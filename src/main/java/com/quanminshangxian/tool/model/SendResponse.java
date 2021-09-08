@@ -1,10 +1,10 @@
-package com.quanminshangxian.tool.mail;
+package com.quanminshangxian.tool.model;
 
 import java.io.Serializable;
 
-public class MaillResponse implements Serializable {
+public class SendResponse implements Serializable {
 
-    // 0 失败 1 成功
+    // 0-失败 1-成功
     private int status = 0;
     private String msg = "unknown error";
 
