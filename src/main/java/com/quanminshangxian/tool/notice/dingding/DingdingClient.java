@@ -2,8 +2,10 @@ package com.quanminshangxian.tool.notice.dingding;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.quanminshangxian.tool.code.ResponseCode;
 import com.quanminshangxian.tool.core.StringUtils;
 import com.quanminshangxian.tool.http.HttpUtils;
+import com.quanminshangxian.tool.model.SendResponse;
 import org.apache.commons.codec.binary.Base64;
 
 import javax.crypto.Mac;
@@ -34,7 +36,7 @@ public class DingdingClient {
      * }
      * }
      */
-    public static DingdingResponse sendTextMsg(String accessToken, String secret, String content, boolean isAtAll, List<String> atMobiles) {
+    public static SendResponse sendTextMsg(String accessToken, String secret, String content, boolean isAtAll, List<String> atMobiles) {
         JSONObject msg = new JSONObject();
         msg.put("msgtype", "text");
         //设置内容
@@ -53,7 +55,7 @@ public class DingdingClient {
                 msg.put("at", at);
             }
         }
-        DingdingResponse dingdingResponse = new DingdingResponse();
+        SendResponse dingdingResponse = new SendResponse();
         Long timestamp = System.currentTimeMillis();
         String sign = getSign(timestamp, secret);
         if (sign == null) {
@@ -69,7 +71,7 @@ public class DingdingClient {
         JSONObject resJson = JSON.parseObject(result);
         int errcode = resJson.getIntValue("errcode");
         if (errcode == 0) {
-            dingdingResponse.setStatus(1);
+            dingdingResponse.setStatus(ResponseCode.SUCCESS.code());
             dingdingResponse.setMsg("发送成功");
             return dingdingResponse;
         }
@@ -89,7 +91,7 @@ public class DingdingClient {
      * }
      * }
      */
-    public static DingdingResponse sendLinkMsg(String accessToken, String secret, String content, String title, String picUrl, String messageUrl) {
+    public static SendResponse sendLinkMsg(String accessToken, String secret, String content, String title, String picUrl, String messageUrl) {
         JSONObject msg = new JSONObject();
         msg.put("msgtype", "link");
         //设置内容
@@ -99,7 +101,7 @@ public class DingdingClient {
         link.put("picUrl", picUrl);
         link.put("messageUrl", messageUrl);
         msg.put("link", link);
-        DingdingResponse dingdingResponse = new DingdingResponse();
+        SendResponse dingdingResponse = new SendResponse();
         Long timestamp = System.currentTimeMillis();
         String sign = getSign(timestamp, secret);
         if (sign == null) {
@@ -115,7 +117,7 @@ public class DingdingClient {
         JSONObject resJson = JSON.parseObject(result);
         int errcode = resJson.getIntValue("errcode");
         if (errcode == 0) {
-            dingdingResponse.setStatus(1);
+            dingdingResponse.setStatus(ResponseCode.SUCCESS.code());
             dingdingResponse.setMsg("发送成功");
             return dingdingResponse;
         }

@@ -1,5 +1,6 @@
 package com.quanminshangxian.tool.http;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -11,14 +12,20 @@ import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.entity.mime.HttpMultipartMode;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -65,7 +72,7 @@ public class HttpUtils {
     }
 
     /**
-     * 发送get请求
+     * send get request
      */
     public static String sendGetRequest(String url) {
         HttpGet httpRequest = new HttpGet(url);
@@ -94,7 +101,7 @@ public class HttpUtils {
     }
 
     /**
-     * 发送post请求
+     * send post request
      */
     public static String sendPostRequest(String url, Map<String, String> params) {
         HttpPost httpRequest = new HttpPost(url);
@@ -128,7 +135,7 @@ public class HttpUtils {
     }
 
     /**
-     * 发送post请求
+     * send post request
      */
     public static String sendPostRequest(String url, String params) {
         HttpPost httpRequest = new HttpPost(url);
@@ -160,7 +167,7 @@ public class HttpUtils {
     }
 
     /**
-     * 发送post请求
+     * send post json request
      */
     public static String sendPostRequestForJson(String url, String params) {
         HttpPost httpRequest = new HttpPost(url);
@@ -192,6 +199,12 @@ public class HttpUtils {
         return null;
     }
 
+    /**
+     * send put request
+     *
+     * @param url
+     * @return
+     */
     public static String sendPutRequest(String url, String params) {
         HttpPut httpRequest = new HttpPut(url);
         CloseableHttpResponse httpResponse = null;
@@ -221,6 +234,12 @@ public class HttpUtils {
         return null;
     }
 
+    /**
+     * send delete request
+     *
+     * @param url
+     * @return
+     */
     public static String sendDeleteRequest(String url) {
         HttpDelete httpRequest = new HttpDelete(url);
         CloseableHttpResponse httpResponse = null;
@@ -233,6 +252,49 @@ public class HttpUtils {
                 httpRequest.abort();
             }
         } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            httpRequest.releaseConnection();
+            try {
+                if (httpResponse != null) {
+                    httpResponse.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * multipart/form-data 上传
+     */
+    public static String multiFormDataUpload(String url, String filePath, Map<String, String> params) {
+        HttpPost httpRequest = new HttpPost(url);
+        CloseableHttpResponse httpResponse = null;
+        try {
+            String fileName = filePath.substring(filePath.lastIndexOf("/") + 1);
+            //处理文件 后面的setMode是用来解决文件名称乱码的问题:以浏览器兼容模式运行，防止文件名乱码。
+            MultipartEntityBuilder builder = MultipartEntityBuilder.create().setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+            FileInputStream fileInputStream = new FileInputStream(new File(filePath));
+            builder.setCharset(StandardCharsets.UTF_8)
+                    .addBinaryBody("file", fileInputStream, ContentType.MULTIPART_FORM_DATA, fileName);
+            // 处理其他参数
+            if (params != null) {
+                for (String param : params.keySet()) {
+                    builder.addTextBody(param, params.get(param));
+                }
+            }
+            HttpEntity httpEntity = builder.build();
+            httpRequest.setEntity(httpEntity);
+            httpResponse = getHttpClient().execute(httpRequest);
+            int status = httpResponse.getStatusLine().getStatusCode();
+            if (status >= 200 && status < 300) {
+                return EntityUtils.toString(httpResponse.getEntity());
+            } else {
+                httpRequest.abort();
+            }
+        } catch (IOException e) {
             e.printStackTrace();
         } finally {
             httpRequest.releaseConnection();
