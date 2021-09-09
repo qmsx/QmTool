@@ -2,8 +2,10 @@ package com.quanminshangxian.tool.notice.qywx;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.quanminshangxian.tool.code.ResponseCode;
 import com.quanminshangxian.tool.core.StringUtils;
 import com.quanminshangxian.tool.http.HttpUtils;
+import com.quanminshangxian.tool.model.SendResponse;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +27,7 @@ public class QyWxClient {
      * }
      * }
      */
-    public static QyWxResponse sendTextMsg(String key, String content, boolean isAtAll, List<String> atMobiles) {
+    public static SendResponse sendTextMsg(String key, String content, boolean isAtAll, List<String> atMobiles) {
         JSONObject msg = new JSONObject();
         msg.put("msgtype", "text");
         //设置内容
@@ -42,7 +44,7 @@ public class QyWxClient {
             }
         }
         msg.put("text", text);
-        QyWxResponse wxResponse = new QyWxResponse();
+        SendResponse wxResponse = new SendResponse();
         String url = String.format(WEB_URL, key);
         String result = HttpUtils.sendPostRequestForJson(url, msg.toJSONString());
         if (StringUtils.isBlank(result)) {
@@ -52,7 +54,7 @@ public class QyWxClient {
         JSONObject resJson = JSON.parseObject(result);
         int errcode = resJson.getIntValue("errcode");
         if (errcode == 0) {
-            wxResponse.setStatus(1);
+            wxResponse.setStatus(ResponseCode.SUCCESS.code());
             wxResponse.setMsg("发送成功");
             return wxResponse;
         }
@@ -73,14 +75,14 @@ public class QyWxClient {
      * }
      * }
      */
-    public static QyWxResponse sendMarkdownMsg(String key, String content) {
+    public static SendResponse sendMarkdownMsg(String key, String content) {
         JSONObject msg = new JSONObject();
         msg.put("msgtype", "markdown");
         //设置内容
         JSONObject markdown = new JSONObject();
         markdown.put("content", content);
         msg.put("markdown", markdown);
-        QyWxResponse wxResponse = new QyWxResponse();
+        SendResponse wxResponse = new SendResponse();
         String url = String.format(WEB_URL, key);
         String result = HttpUtils.sendPostRequestForJson(url, msg.toJSONString());
         if (StringUtils.isBlank(result)) {
@@ -90,7 +92,7 @@ public class QyWxClient {
         JSONObject resJson = JSON.parseObject(result);
         int errcode = resJson.getIntValue("errcode");
         if (errcode == 0) {
-            wxResponse.setStatus(1);
+            wxResponse.setStatus(ResponseCode.SUCCESS.code());
             wxResponse.setMsg("发送成功");
             return wxResponse;
         }
@@ -111,8 +113,8 @@ public class QyWxClient {
      * <p>
      * 图片（base64编码前）最大不能超过2M，支持JPG,PNG格式
      */
-    public static QyWxResponse sendImgMsg(String key, String base64, String md5) {
-        QyWxResponse wxResponse = new QyWxResponse();
+    public static SendResponse sendImgMsg(String key, String base64, String md5) {
+        SendResponse wxResponse = new SendResponse();
         if (base64.length() > 2 * 1024 * 1024) {
             wxResponse.setMsg("图片不能大于2M");
             return wxResponse;
@@ -133,7 +135,7 @@ public class QyWxClient {
         JSONObject resJson = JSON.parseObject(result);
         int errcode = resJson.getIntValue("errcode");
         if (errcode == 0) {
-            wxResponse.setStatus(1);
+            wxResponse.setStatus(ResponseCode.SUCCESS.code());
             wxResponse.setMsg("发送成功");
             return wxResponse;
         }
@@ -157,8 +159,8 @@ public class QyWxClient {
      * }
      * }
      */
-    public static QyWxResponse sendNewsMsg(String key, List<QyWxArticle> articles) {
-        QyWxResponse wxResponse = new QyWxResponse();
+    public static SendResponse sendNewsMsg(String key, List<QyWxArticle> articles) {
+        SendResponse wxResponse = new SendResponse();
         if (articles.size() > 8) {
             wxResponse.setMsg("图文消息不能超过8条");
             return wxResponse;
@@ -178,7 +180,7 @@ public class QyWxClient {
         JSONObject resJson = JSON.parseObject(result);
         int errcode = resJson.getIntValue("errcode");
         if (errcode == 0) {
-            wxResponse.setStatus(1);
+            wxResponse.setStatus(ResponseCode.SUCCESS.code());
             wxResponse.setMsg("发送成功");
             return wxResponse;
         }

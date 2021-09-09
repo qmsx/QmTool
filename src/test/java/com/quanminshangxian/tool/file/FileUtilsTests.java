@@ -24,7 +24,7 @@ public class FileUtilsTests {
     }
     @Test
     public void downloadNetworkFile() throws IOException {
-        boolean b = FileUtils.downloadFile("https://img.alicdn.com/imgextra/i3/326997967/TB2vpmgrr1YBuNjSszhXXcUsFXa_!!326997967.jpg", "F:\\sjw\\10.jpg");
+        boolean b = FileUtils.downloadNetworkFile("https://img.alicdn.com/imgextra/i3/326997967/TB2vpmgrr1YBuNjSszhXXcUsFXa_!!326997967.jpg", "F:\\sjw\\10.jpg");
         Assert.assertTrue(b);
 
     }
