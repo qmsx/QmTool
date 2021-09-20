@@ -3,7 +3,7 @@ package com.quanminshangxian.tool.oss;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.quanminshangxian.tool.code.ResponseCode;
-import com.quanminshangxian.tool.core.StringUtils;
+import com.quanminshangxian.tool.common.StringUtils;
 import com.quanminshangxian.tool.file.FileUtils;
 import com.quanminshangxian.tool.http.HttpUtils;
 import com.quanminshangxian.tool.model.AccessTokenCache;
@@ -125,10 +125,11 @@ public class OssQmClient {
             int code = resJson.getIntValue("code");
             String resMsg = resJson.getString("resMsg");
             if (code == 200) {
-                String url = resJson.getString("url");
-                Integer width = resJson.getInteger("width");
-                Integer height = resJson.getInteger("height");
-                Integer times = resJson.getInteger("times");
+                JSONObject dataJson = resJson.getJSONObject("data");
+                String url = dataJson.getString("url");
+                Integer width = dataJson.getInteger("width");
+                Integer height = dataJson.getInteger("height");
+                Integer times = dataJson.getInteger("times");
                 ossResponse.setStatus(ResponseCode.SUCCESS.code());
                 ossResponse.setMsg("success");
                 OssQmResponseData ossResponseData = new OssQmResponseData();
@@ -197,10 +198,11 @@ public class OssQmClient {
             int code = resJson.getIntValue("code");
             String resMsg = resJson.getString("resMsg");
             if (code == 200) {
-                String url = resJson.getString("url");
-                Integer width = resJson.getInteger("width");
-                Integer height = resJson.getInteger("height");
-                Integer times = resJson.getInteger("times");
+                JSONObject dataJson = resJson.getJSONObject("data");
+                String url = dataJson.getString("url");
+                Integer width = dataJson.getInteger("width");
+                Integer height = dataJson.getInteger("height");
+                Integer times = dataJson.getInteger("times");
                 ossResponse.setStatus(ResponseCode.SUCCESS.code());
                 ossResponse.setMsg("success");
                 OssQmResponseData ossResponseData = new OssQmResponseData();
@@ -313,10 +315,11 @@ public class OssQmClient {
             int code = resJson.getIntValue("code");
             String resMsg = resJson.getString("resMsg");
             if (code == 200) {
-                String url = resJson.getString("url");
-                Integer width = resJson.getInteger("width");
-                Integer height = resJson.getInteger("height");
-                Integer times = resJson.getInteger("times");
+                JSONObject dataJson = resJson.getJSONObject("data");
+                String url = dataJson.getString("url");
+                Integer width = dataJson.getInteger("width");
+                Integer height = dataJson.getInteger("height");
+                Integer times = dataJson.getInteger("times");
                 ossResponse.setStatus(ResponseCode.SUCCESS.code());
                 ossResponse.setMsg("success");
                 OssQmResponseData ossResponseData = new OssQmResponseData();

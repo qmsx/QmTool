@@ -1,7 +1,7 @@
 package com.quanminshangxian.tool.card;
 
-import com.quanminshangxian.tool.core.MatchUtils;
-import com.quanminshangxian.tool.date.DateUtils;
+import com.quanminshangxian.tool.common.MatchUtils;
+import com.quanminshangxian.tool.common.DateUtils;
 
 import java.util.Calendar;
 import java.util.Date;

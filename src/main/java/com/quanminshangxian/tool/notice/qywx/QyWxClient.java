@@ -3,7 +3,7 @@ package com.quanminshangxian.tool.notice.qywx;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.quanminshangxian.tool.code.ResponseCode;
-import com.quanminshangxian.tool.core.StringUtils;
+import com.quanminshangxian.tool.common.StringUtils;
 import com.quanminshangxian.tool.http.HttpUtils;
 import com.quanminshangxian.tool.model.SendResponse;
 
