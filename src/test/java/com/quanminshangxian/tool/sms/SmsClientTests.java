@@ -6,7 +6,7 @@ public class SmsClientTests {
 
     @Test
     public void send() {
-        SmsQmClient.build("", "").send("", "", "");
+        QmSmsClient.build("", "").send("", "", "");
     }
 
 }

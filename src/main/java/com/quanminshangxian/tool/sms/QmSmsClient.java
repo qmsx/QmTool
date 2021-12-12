@@ -12,20 +12,20 @@ import com.quanminshangxian.tool.model.SendResponse;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class SmsQmClient {
+public class QmSmsClient {
 
     private static final Map<String, AccessTokenCache> accessTokenCacheMap = new ConcurrentHashMap<String, AccessTokenCache>();
 
     private String appid;
     private String appsecret;
 
-    private SmsQmClient(String appid, String appsecret) {
+    private QmSmsClient(String appid, String appsecret) {
         this.appid = appid;
         this.appsecret = appsecret;
     }
 
-    public static SmsQmClient build(String appid, String appsecret) {
-        return new SmsQmClient(appid, appsecret);
+    public static QmSmsClient build(String appid, String appsecret) {
+        return new QmSmsClient(appid, appsecret);
     }
 
     /**
@@ -53,7 +53,7 @@ public class SmsQmClient {
         JSONObject params = new JSONObject();
         params.put("appid", appid);
         params.put("appsecret", appsecret);
-        String result = HttpUtils.sendPostRequest(SmsQmUrls.GET_ACCESS_TOKEN, params.toJSONString());
+        String result = HttpUtils.sendPostRequest(QmSmsUrls.GET_ACCESS_TOKEN, params.toJSONString());
         System.out.println(result);
         if (result != null) {//重试一次
             JSONObject resJson = JSON.parseObject(result);
@@ -111,7 +111,7 @@ public class SmsQmClient {
         params.put("tplId", tplId);
         params.put("mobile", mobile);
         params.put("var", var);
-        String url = String.format(SmsQmUrls.SEND_SMS, accessToken);
+        String url = String.format(QmSmsUrls.SEND_SMS, accessToken);
         String result = HttpUtils.sendPostRequest(url, params.toJSONString());
         if (!StringUtils.isBlank(result)) {
             JSONObject resJson = JSON.parseObject(result);

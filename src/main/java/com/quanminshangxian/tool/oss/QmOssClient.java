@@ -15,19 +15,19 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class OssQmClient {
+public class QmOssClient {
 
     private static final Map<String, AccessTokenCache> accessTokenCacheMap = new ConcurrentHashMap<String, AccessTokenCache>();
     private String appid;
     private String appsecret;
 
-    private OssQmClient(String appid, String appsecret) {
+    private QmOssClient(String appid, String appsecret) {
         this.appid = appid;
         this.appsecret = appsecret;
     }
 
-    public static OssQmClient build(String appid, String appsecret) {
-        return new OssQmClient(appid, appsecret);
+    public static QmOssClient build(String appid, String appsecret) {
+        return new QmOssClient(appid, appsecret);
     }
 
     /**
@@ -55,7 +55,7 @@ public class OssQmClient {
         JSONObject params = new JSONObject();
         params.put("appid", appid);
         params.put("appsecret", appsecret);
-        String result = HttpUtils.sendPostRequest(OssQmUrls.GET_ACCESS_TOKEN, params.toJSONString());
+        String result = HttpUtils.sendPostRequest(QmOssUrls.GET_ACCESS_TOKEN, params.toJSONString());
         if (result != null) {//重试一次
             JSONObject resJson = JSON.parseObject(result);
             int code = resJson.getIntValue("code");
@@ -94,18 +94,19 @@ public class OssQmClient {
      *
      * @return
      */
-    public OssQmResponse upload(Long parentId, String name, String data) {
-        if (data.length() > 1024 * 1024 * 10) {
-            OssQmResponse ossResponse = new OssQmResponse();
+    public QmOssResponse uploadBase64(QmOssBase64RequestParam qmOssBase64RequestParam) {
+        String base64 = qmOssBase64RequestParam.getBase64();
+        if (base64.length() > 1024 * 1024 * 5) {
+            QmOssResponse ossResponse = new QmOssResponse();
             ossResponse.setStatus(0);
-            ossResponse.setMsg("base64方式上传文件不能大于10M");
+            ossResponse.setMsg("base64方式上传文件不能大于5M");
             return ossResponse;
         }
-        return realUpload(parentId, name, data, true);
+        return realUploadBase64(qmOssBase64RequestParam, true);
     }
 
-    private OssQmResponse realUpload(Long parentId, String name, String data, boolean isRetry) {
-        OssQmResponse ossResponse = new OssQmResponse();
+    private QmOssResponse realUploadBase64(QmOssBase64RequestParam qmOssBase64RequestParam, boolean isRetry) {
+        QmOssResponse ossResponse = new QmOssResponse();
         GetAccessTokenResponse getAccessTokenResponse = getAccessToken(appid, appsecret, false);
         int getAccessTokenResponseStatus = getAccessTokenResponse.getStatus();
         if (getAccessTokenResponseStatus == ResponseCode.FAILURE.code()) {
@@ -115,10 +116,11 @@ public class OssQmClient {
         }
         String accessToken = getAccessTokenResponse.getAccessToken();
         JSONObject params = new JSONObject();
-        params.put("parentId", parentId);
-        params.put("name", name);
-        params.put("data", data);
-        String uploadUrl = String.format(OssQmUrls.UPLOAD, accessToken);
+        params.put("accessAuth", qmOssBase64RequestParam.getAccessAuth());
+        params.put("parentId", qmOssBase64RequestParam.getParentId());
+        params.put("name", qmOssBase64RequestParam.getOssName());
+        params.put("data", qmOssBase64RequestParam.getBase64());
+        String uploadUrl = String.format(QmOssUrls.UPLOAD_BASE64, accessToken);
         String result = HttpUtils.sendPostRequest(uploadUrl, params.toJSONString());
         if (!StringUtils.isBlank(result)) {
             JSONObject resJson = JSON.parseObject(result);
@@ -126,13 +128,15 @@ public class OssQmClient {
             String resMsg = resJson.getString("resMsg");
             if (code == 200) {
                 JSONObject dataJson = resJson.getJSONObject("data");
+                String ossId = dataJson.getString("ossId");
                 String url = dataJson.getString("url");
                 Integer width = dataJson.getInteger("width");
                 Integer height = dataJson.getInteger("height");
                 Integer times = dataJson.getInteger("times");
                 ossResponse.setStatus(ResponseCode.SUCCESS.code());
                 ossResponse.setMsg("success");
-                OssQmResponseData ossResponseData = new OssQmResponseData();
+                QmOssResponseData ossResponseData = new QmOssResponseData();
+                ossResponseData.setOssId(ossId);
                 ossResponseData.setUrl(url);
                 ossResponseData.setWidth(width);
                 ossResponseData.setHeight(height);
@@ -144,7 +148,7 @@ public class OssQmClient {
                 getAccessToken(appid, appsecret, true);
                 if (isRetry) {
                     //重试后不再重试
-                    realUpload(parentId, name, data, false);
+                    realUploadBase64(qmOssBase64RequestParam, false);
                 }
             } else {
                 ossResponse.setStatus(ResponseCode.FAILURE.code());
@@ -162,10 +166,12 @@ public class OssQmClient {
      *
      * @return
      */
-    public OssQmResponse multipartUpload(Long parentId, String filePath) {
+    public QmOssResponse uploadMultipart(QmOssFileRequestParam qmOssFileRequestParam) {
+        String filePath = qmOssFileRequestParam.getFilePath();
+        String parentId = qmOssFileRequestParam.getParentId();
         File tmpFile = new File(filePath);
         if (!tmpFile.exists()) {
-            OssQmResponse ossResponse = new OssQmResponse();
+            QmOssResponse ossResponse = new QmOssResponse();
             ossResponse.setStatus(0);
             ossResponse.setMsg("file not exist");
             return ossResponse;
@@ -173,14 +179,16 @@ public class OssQmClient {
         long fileSize = tmpFile.length();
         //如果文件大于5M自动采用分片上传
         if (fileSize > 1024 * 1024 * 5) {
-            return chunkUpload(parentId, filePath);
+            return uploadChunk(qmOssFileRequestParam);
         }
-        return realMultipartUpload(parentId, filePath, true);
+        return realUploadMultipart(qmOssFileRequestParam, true);
     }
 
-    private OssQmResponse realMultipartUpload(Long parentId, String filePath, boolean isRetry) {
+    private QmOssResponse realUploadMultipart(QmOssFileRequestParam qmOssFileRequestParam, boolean isRetry) {
+        String filePath = qmOssFileRequestParam.getFilePath();
+        String parentId = qmOssFileRequestParam.getParentId();
         filePath = filePath.replaceAll("\\\\", "/");
-        OssQmResponse ossResponse = new OssQmResponse();
+        QmOssResponse ossResponse = new QmOssResponse();
         GetAccessTokenResponse getAccessTokenResponse = getAccessToken(appid, appsecret, false);
         int getAccessTokenResponseStatus = getAccessTokenResponse.getStatus();
         if (getAccessTokenResponseStatus == ResponseCode.FAILURE.code()) {
@@ -189,9 +197,10 @@ public class OssQmClient {
             return ossResponse;
         }
         String accessToken = getAccessTokenResponse.getAccessToken();
-        String uploadUrl = String.format(OssQmUrls.MULTIPART_UPLOAD, accessToken);
+        String uploadUrl = String.format(QmOssUrls.UPLOAD_MULTIPART, accessToken);
         Map<String, String> params = new HashMap<>();
-        params.put("parentId", String.valueOf(parentId));
+        params.put("accessAuth", qmOssFileRequestParam.getAccessAuth());
+        params.put("parentId", parentId);
         String result = HttpUtils.multiFormDataUpload(uploadUrl, filePath, params);
         if (!StringUtils.isBlank(result)) {
             JSONObject resJson = JSON.parseObject(result);
@@ -199,13 +208,15 @@ public class OssQmClient {
             String resMsg = resJson.getString("resMsg");
             if (code == 200) {
                 JSONObject dataJson = resJson.getJSONObject("data");
+                String ossId = dataJson.getString("ossId");
                 String url = dataJson.getString("url");
                 Integer width = dataJson.getInteger("width");
                 Integer height = dataJson.getInteger("height");
                 Integer times = dataJson.getInteger("times");
                 ossResponse.setStatus(ResponseCode.SUCCESS.code());
                 ossResponse.setMsg("success");
-                OssQmResponseData ossResponseData = new OssQmResponseData();
+                QmOssResponseData ossResponseData = new QmOssResponseData();
+                ossResponseData.setOssId(ossId);
                 ossResponseData.setUrl(url);
                 ossResponseData.setWidth(width);
                 ossResponseData.setHeight(height);
@@ -217,7 +228,7 @@ public class OssQmClient {
                 getAccessToken(appid, appsecret, true);
                 if (isRetry) {
                     //重试后不再重试
-                    realMultipartUpload(parentId, filePath, false);
+                    realUploadMultipart(qmOssFileRequestParam, false);
                 }
             } else {
                 ossResponse.setStatus(ResponseCode.FAILURE.code());
@@ -235,10 +246,12 @@ public class OssQmClient {
      *
      * @return
      */
-    private OssQmResponse chunkUpload(Long parentId, String filePath) {
+    private QmOssResponse uploadChunk(QmOssFileRequestParam qmOssFileRequestParam) {
+        String filePath = qmOssFileRequestParam.getFilePath();
+        String parentId = qmOssFileRequestParam.getParentId();
         File tmpFile = new File(filePath);
         if (!tmpFile.exists()) {
-            OssQmResponse ossResponse = new OssQmResponse();
+            QmOssResponse ossResponse = new QmOssResponse();
             ossResponse.setStatus(0);
             ossResponse.setMsg("file not exist");
             return ossResponse;
@@ -248,11 +261,11 @@ public class OssQmClient {
         int blockSize = 1024 * 1024 * 5;
         //如果文件小于5M转为multipart上传
         if (fileSize <= blockSize) {
-            return multipartUpload(parentId, filePath);
+            return uploadMultipart(qmOssFileRequestParam);
         }
         filePath = filePath.replaceAll("\\\\", "/");
         String filename = filePath.substring(filePath.lastIndexOf("/") + 1);
-        OssQmResponse ossResponse = new OssQmResponse();
+        QmOssResponse ossResponse = new QmOssResponse();
         String identifier = UUID.randomUUID().toString().replaceAll("-", "");
         try {
             long totalSize = new File(filePath).length();
@@ -265,7 +278,7 @@ public class OssQmClient {
             }
             for (File file : files) {
                 //上传分片文件
-                OssQmResponse chunkUploadResponse = realChunkUpload(parentId, totalSize, files.length, file.getAbsolutePath(), identifier, filename, true);
+                QmOssResponse chunkUploadResponse = realUploadChunk(qmOssFileRequestParam, totalSize, files.length, file.getAbsolutePath(), identifier, filename, true);
                 int state = chunkUploadResponse.getStatus();
                 if (state == 1) {
                     if (!StringUtils.isBlank(chunkUploadResponse.getData().getUrl())) {
@@ -290,8 +303,8 @@ public class OssQmClient {
         }
     }
 
-    private OssQmResponse realChunkUpload(Long parentId, long totalSize, int totalChunks, String chunkFilePath, String identifier, String filename, boolean isRetry) {
-        OssQmResponse ossResponse = new OssQmResponse();
+    private QmOssResponse realUploadChunk(QmOssFileRequestParam qmOssFileRequestParam, long totalSize, int totalChunks, String chunkFilePath, String identifier, String filename, boolean isRetry) {
+        QmOssResponse ossResponse = new QmOssResponse();
         GetAccessTokenResponse getAccessTokenResponse = getAccessToken(appid, appsecret, false);
         int getAccessTokenResponseStatus = getAccessTokenResponse.getStatus();
         if (getAccessTokenResponseStatus == ResponseCode.FAILURE.code()) {
@@ -300,10 +313,10 @@ public class OssQmClient {
             return ossResponse;
         }
         String accessToken = getAccessTokenResponse.getAccessToken();
-        String chunkUploadUrl = String.format(OssQmUrls.CHUNK_UPLOAD, accessToken);
+        String chunkUploadUrl = String.format(QmOssUrls.UPLOAD_CHUNK, accessToken);
         Map<String, String> params = new HashMap<>();
         int chunkNumber = Integer.parseInt(chunkFilePath.substring(chunkFilePath.lastIndexOf("-") + 1));
-        params.put("parentId", String.valueOf(parentId));
+        params.put("parentId", qmOssFileRequestParam.getParentId());
         params.put("identifier", identifier);
         params.put("filename", filename);
         params.put("chunkNumber", String.valueOf(chunkNumber));
@@ -316,13 +329,15 @@ public class OssQmClient {
             String resMsg = resJson.getString("resMsg");
             if (code == 200) {
                 JSONObject dataJson = resJson.getJSONObject("data");
+                String ossId = dataJson.getString("ossId");
                 String url = dataJson.getString("url");
                 Integer width = dataJson.getInteger("width");
                 Integer height = dataJson.getInteger("height");
                 Integer times = dataJson.getInteger("times");
                 ossResponse.setStatus(ResponseCode.SUCCESS.code());
                 ossResponse.setMsg("success");
-                OssQmResponseData ossResponseData = new OssQmResponseData();
+                QmOssResponseData ossResponseData = new QmOssResponseData();
+                ossResponseData.setOssId(ossId);
                 ossResponseData.setUrl(url);
                 ossResponseData.setWidth(width);
                 ossResponseData.setHeight(height);
@@ -334,7 +349,7 @@ public class OssQmClient {
                 getAccessToken(appid, appsecret, true);
                 if (isRetry) {
                     //重试后不再重试
-                    realChunkUpload(parentId, totalSize, totalChunks, chunkFilePath, identifier, filename, false);
+                    realUploadChunk(qmOssFileRequestParam, totalSize, totalChunks, chunkFilePath, identifier, filename, false);
                 }
             } else {
                 ossResponse.setStatus(ResponseCode.FAILURE.code());

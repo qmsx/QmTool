@@ -13,19 +13,19 @@ import com.quanminshangxian.tool.model.GetAccessTokenResponse;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class PayQmClient {
+public class QmPayClient {
 
     private String appid;
     private String appsecret;
     private static final Map<String, AccessTokenCache> accessTokenCacheMap = new ConcurrentHashMap<String, AccessTokenCache>();
 
-    private PayQmClient(String appid, String appsecret) {
+    private QmPayClient(String appid, String appsecret) {
         this.appid = appid;
         this.appsecret = appsecret;
     }
 
-    public static PayQmClient build(String appid, String appsecret) {
-        return new PayQmClient(appid, appsecret);
+    public static QmPayClient build(String appid, String appsecret) {
+        return new QmPayClient(appid, appsecret);
     }
 
     /**
@@ -53,7 +53,7 @@ public class PayQmClient {
         JSONObject params = new JSONObject();
         params.put("appid", appid);
         params.put("appsecret", appsecret);
-        String result = HttpUtils.sendPostRequest(PayQmUrls.GET_ACCESS_TOKEN, params.toJSONString());
+        String result = HttpUtils.sendPostRequest(QmPayUrls.GET_ACCESS_TOKEN, params.toJSONString());
         if (result != null) {//重试一次
             JSONObject resJson = JSON.parseObject(result);
             int code = resJson.getIntValue("code");
@@ -108,7 +108,7 @@ public class PayQmClient {
         String accessToken = getAccessTokenResponse.getAccessToken();
         JSONObject params = new JSONObject();
         params.put("order", orderInfo);
-        String url = String.format(PayQmUrls.CREATE_ORDER, accessToken);
+        String url = String.format(QmPayUrls.CREATE_ORDER, accessToken);
         String result = HttpUtils.sendPostRequest(url, params.toJSONString());
         if (!StringUtils.isBlank(result)) {
             JSONObject resJson = JSON.parseObject(result);
@@ -142,14 +142,14 @@ public class PayQmClient {
      * 获取支付宝电脑网站支付链接
      */
     public String getAlipayWebsitePayUrl(String orderNo) {
-        return String.format(PayQmUrls.ALIPAY_WEBSITE_PAY_URL, orderNo);
+        return String.format(QmPayUrls.ALIPAY_WEBSITE_PAY_URL, orderNo);
     }
 
     /**
      * 获取支付宝手机网站支付链接
      */
     public String getAlipayWapPayUrl(String orderNo) {
-        return String.format(PayQmUrls.ALIPAY_WAP_PAY_URL, orderNo);
+        return String.format(QmPayUrls.ALIPAY_WAP_PAY_URL, orderNo);
     }
 
     /**
@@ -171,7 +171,7 @@ public class PayQmClient {
         String accessToken = getAccessTokenResponse.getAccessToken();
         JSONObject params = new JSONObject();
         params.put("orderNo", orderNo);
-        String url = String.format(PayQmUrls.ALIPAY_APP_PAY_URL, accessToken);
+        String url = String.format(QmPayUrls.ALIPAY_APP_PAY_URL, accessToken);
         String result = HttpUtils.sendPostRequest(url, params.toJSONString());
         if (!StringUtils.isBlank(result)) {
             JSONObject resJson = JSON.parseObject(result);
@@ -205,14 +205,14 @@ public class PayQmClient {
      * 获取微信公众号支付链接
      */
     public String getWxGzPayUrl(String orderNo) {
-        return String.format(PayQmUrls.WX_GZ_PAY_URL, orderNo);
+        return String.format(QmPayUrls.WX_GZ_PAY_URL, orderNo);
     }
 
     /**
      * 获取微信H5支付链接
      */
     public String getWxH5PayUrl(String orderNo) {
-        return String.format(PayQmUrls.WX_H5_PAY_URL, orderNo);
+        return String.format(QmPayUrls.WX_H5_PAY_URL, orderNo);
     }
 
     /**
@@ -234,7 +234,7 @@ public class PayQmClient {
         String accessToken = getAccessTokenResponse.getAccessToken();
         JSONObject params = new JSONObject();
         params.put("orderNo", orderNo);
-        String url = String.format(PayQmUrls.WX_APP_PAY_URL, accessToken);
+        String url = String.format(QmPayUrls.WX_APP_PAY_URL, accessToken);
         String result = HttpUtils.sendPostRequest(url, params.toJSONString());
         if (!StringUtils.isBlank(result)) {
             JSONObject resJson = JSON.parseObject(result);

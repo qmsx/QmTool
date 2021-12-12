@@ -32,10 +32,10 @@ import java.util.Map;
 
 public class HttpUtils {
 
-    public static final int CONNECTION_REQUEST_TIMEOUT = 30 * 1000; //从连接池获取连接的超时时间
-    public static final int CONNECTION_TIMEOUT = 60 * 1000;  //握手的超时时间
-    public static final int SOCKET_TIMEOUT = 60 * 1000; //数据包最大的间隔时间
-    public static final int SO_TIMEOUT = 60 * 1000; //等待数据超时时间
+    private static final int CONNECTION_REQUEST_TIMEOUT = 30 * 1000; //从连接池获取连接的超时时间
+    private static final int CONNECTION_TIMEOUT = 60 * 1000;  //握手的超时时间
+    private static final int SOCKET_TIMEOUT = 60 * 1000; //数据包最大的间隔时间
+    private static final int SO_TIMEOUT = 60 * 1000; //等待数据超时时间
 
     private static PoolingHttpClientConnectionManager poolConnManager;
     private static CloseableHttpClient closeableHttpClient;
