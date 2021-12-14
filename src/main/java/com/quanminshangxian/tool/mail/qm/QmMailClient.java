@@ -13,20 +13,20 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 
-public final class MailQmClient {
+public final class QmMailClient {
 
     private static final Map<String, AccessTokenCache> accessTokenCacheMap = new ConcurrentHashMap<String, AccessTokenCache>();
 
     private String appid;
     private String appsecret;
 
-    private MailQmClient(String appid, String appsecret) {
+    private QmMailClient(String appid, String appsecret) {
         this.appid = appid;
         this.appsecret = appsecret;
     }
 
-    public static MailQmClient build(String appid, String appsecret) {
-        return new MailQmClient(appid, appsecret);
+    public static QmMailClient build(String appid, String appsecret) {
+        return new QmMailClient(appid, appsecret);
     }
 
     /**
@@ -54,7 +54,7 @@ public final class MailQmClient {
         JSONObject params = new JSONObject();
         params.put("appid", appid);
         params.put("appsecret", appsecret);
-        String result = HttpUtils.sendPostRequest(MailQmUrls.GET_ACCESS_TOKEN, params.toJSONString());
+        String result = HttpUtils.postRequest(QmMailUrls.GET_ACCESS_TOKEN, params.toJSONString());
         System.out.println(result);
         if (result != null) {//重试一次
             JSONObject resJson = JSON.parseObject(result);
@@ -115,8 +115,8 @@ public final class MailQmClient {
         params.put("receiveMail", receiveEmail);
         params.put("subject", subject);
         params.put("content", content);
-        String url = String.format(MailQmUrls.SEND_EMAIL, accessToken);
-        String result = HttpUtils.sendPostRequest(url, params.toJSONString());
+        String url = String.format(QmMailUrls.SEND_EMAIL, accessToken);
+        String result = HttpUtils.postRequest(url, params.toJSONString());
         System.out.println(result);
         if (!StringUtils.isBlank(result)) {
             JSONObject resJson = JSON.parseObject(result);
@@ -170,8 +170,8 @@ public final class MailQmClient {
         }
         params.put("receiveMail", receiveEmail);
         params.put("var", var);
-        String url = String.format(MailQmUrls.SEND_TPL_EMAIL, accessToken);
-        String result = HttpUtils.sendPostRequest(url, params.toJSONString());
+        String url = String.format(QmMailUrls.SEND_TPL_EMAIL, accessToken);
+        String result = HttpUtils.postRequest(url, params.toJSONString());
         if (!StringUtils.isBlank(result)) {
             JSONObject resJson = JSON.parseObject(result);
             int code = resJson.getIntValue("code");

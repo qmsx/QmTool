@@ -20,5 +20,9 @@ public final class QmOssUrls {
      * 分块上传
      */
     static String UPLOAD_CHUNK = API_BASE_URL + "/upload/chunk?access_token=%s";
+    /**
+     * 获取对象的外网链接
+     */
+    static String GET_NET_URL = API_BASE_URL + "/oss/getNetUrl?access_token=%s";
 
 }

@@ -72,9 +72,9 @@ public class HttpUtils {
     }
 
     /**
-     * send get request
+     * get request
      */
-    public static String sendGetRequest(String url) {
+    public static String getRequest(String url) {
         HttpGet httpRequest = new HttpGet(url);
         CloseableHttpResponse httpResponse = null;
         try {
@@ -103,7 +103,7 @@ public class HttpUtils {
     /**
      * send post request
      */
-    public static String sendPostRequest(String url, Map<String, String> params) {
+    public static String postRequest(String url, Map<String, String> params) {
         HttpPost httpRequest = new HttpPost(url);
         CloseableHttpResponse httpResponse = null;
         try {
@@ -137,7 +137,7 @@ public class HttpUtils {
     /**
      * send post request
      */
-    public static String sendPostRequest(String url, String params) {
+    public static String postRequest(String url, String params) {
         HttpPost httpRequest = new HttpPost(url);
         CloseableHttpResponse httpResponse = null;
         try {
@@ -169,7 +169,7 @@ public class HttpUtils {
     /**
      * send post json request
      */
-    public static String sendPostRequestForJson(String url, String params) {
+    public static String postRequestForJson(String url, String params) {
         HttpPost httpRequest = new HttpPost(url);
         CloseableHttpResponse httpResponse = null;
         try {
@@ -205,7 +205,7 @@ public class HttpUtils {
      * @param url
      * @return
      */
-    public static String sendPutRequest(String url, String params) {
+    public static String putRequest(String url, String params) {
         HttpPut httpRequest = new HttpPut(url);
         CloseableHttpResponse httpResponse = null;
         try {
@@ -240,7 +240,7 @@ public class HttpUtils {
      * @param url
      * @return
      */
-    public static String sendDeleteRequest(String url) {
+    public static String deleteRequest(String url) {
         HttpDelete httpRequest = new HttpDelete(url);
         CloseableHttpResponse httpResponse = null;
         try {

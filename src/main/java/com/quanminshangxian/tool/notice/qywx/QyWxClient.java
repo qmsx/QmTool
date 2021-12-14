@@ -46,7 +46,7 @@ public class QyWxClient {
         msg.put("text", text);
         SendResponse wxResponse = new SendResponse();
         String url = String.format(WEB_URL, key);
-        String result = HttpUtils.sendPostRequestForJson(url, msg.toJSONString());
+        String result = HttpUtils.postRequestForJson(url, msg.toJSONString());
         if (StringUtils.isBlank(result)) {
             wxResponse.setMsg("接口无响应");
             return wxResponse;
@@ -84,7 +84,7 @@ public class QyWxClient {
         msg.put("markdown", markdown);
         SendResponse wxResponse = new SendResponse();
         String url = String.format(WEB_URL, key);
-        String result = HttpUtils.sendPostRequestForJson(url, msg.toJSONString());
+        String result = HttpUtils.postRequestForJson(url, msg.toJSONString());
         if (StringUtils.isBlank(result)) {
             wxResponse.setMsg("接口无响应");
             return wxResponse;
@@ -127,7 +127,7 @@ public class QyWxClient {
         image.put("md5", md5);
         msg.put("image", image);
         String url = String.format(WEB_URL, key);
-        String result = HttpUtils.sendPostRequestForJson(url, msg.toJSONString());
+        String result = HttpUtils.postRequestForJson(url, msg.toJSONString());
         if (StringUtils.isBlank(result)) {
             wxResponse.setMsg("接口无响应");
             return wxResponse;
@@ -172,7 +172,7 @@ public class QyWxClient {
         news.put("articles", articles);
         msg.put("news", news);
         String url = String.format(WEB_URL, key);
-        String result = HttpUtils.sendPostRequestForJson(url, msg.toJSONString());
+        String result = HttpUtils.postRequestForJson(url, msg.toJSONString());
         if (StringUtils.isBlank(result)) {
             wxResponse.setMsg("接口无响应");
             return wxResponse;

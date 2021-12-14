@@ -53,7 +53,7 @@ public class QmPayClient {
         JSONObject params = new JSONObject();
         params.put("appid", appid);
         params.put("appsecret", appsecret);
-        String result = HttpUtils.sendPostRequest(QmPayUrls.GET_ACCESS_TOKEN, params.toJSONString());
+        String result = HttpUtils.postRequest(QmPayUrls.GET_ACCESS_TOKEN, params.toJSONString());
         if (result != null) {//重试一次
             JSONObject resJson = JSON.parseObject(result);
             int code = resJson.getIntValue("code");
@@ -109,7 +109,7 @@ public class QmPayClient {
         JSONObject params = new JSONObject();
         params.put("order", orderInfo);
         String url = String.format(QmPayUrls.CREATE_ORDER, accessToken);
-        String result = HttpUtils.sendPostRequest(url, params.toJSONString());
+        String result = HttpUtils.postRequest(url, params.toJSONString());
         if (!StringUtils.isBlank(result)) {
             JSONObject resJson = JSON.parseObject(result);
             int code = resJson.getIntValue("code");
@@ -172,7 +172,7 @@ public class QmPayClient {
         JSONObject params = new JSONObject();
         params.put("orderNo", orderNo);
         String url = String.format(QmPayUrls.ALIPAY_APP_PAY_URL, accessToken);
-        String result = HttpUtils.sendPostRequest(url, params.toJSONString());
+        String result = HttpUtils.postRequest(url, params.toJSONString());
         if (!StringUtils.isBlank(result)) {
             JSONObject resJson = JSON.parseObject(result);
             int code = resJson.getIntValue("code");
@@ -235,7 +235,7 @@ public class QmPayClient {
         JSONObject params = new JSONObject();
         params.put("orderNo", orderNo);
         String url = String.format(QmPayUrls.WX_APP_PAY_URL, accessToken);
-        String result = HttpUtils.sendPostRequest(url, params.toJSONString());
+        String result = HttpUtils.postRequest(url, params.toJSONString());
         if (!StringUtils.isBlank(result)) {
             JSONObject resJson = JSON.parseObject(result);
             int code = resJson.getIntValue("code");

@@ -2,7 +2,7 @@ package com.quanminshangxian.tool.oss;
 
 import java.io.Serializable;
 
-public class QmOssResponse implements Serializable {
+public class QmOssUploadResponse implements Serializable {
 
     // 0 失败 1 成功
     private int status = 0;

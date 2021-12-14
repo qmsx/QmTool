@@ -55,7 +55,7 @@ public class QmOssClient {
         JSONObject params = new JSONObject();
         params.put("appid", appid);
         params.put("appsecret", appsecret);
-        String result = HttpUtils.sendPostRequest(QmOssUrls.GET_ACCESS_TOKEN, params.toJSONString());
+        String result = HttpUtils.postRequest(QmOssUrls.GET_ACCESS_TOKEN, params.toJSONString());
         if (result != null) {//重试一次
             JSONObject resJson = JSON.parseObject(result);
             int code = resJson.getIntValue("code");
@@ -94,10 +94,10 @@ public class QmOssClient {
      *
      * @return
      */
-    public QmOssResponse uploadBase64(QmOssBase64RequestParam qmOssBase64RequestParam) {
+    public QmOssUploadResponse uploadBase64(QmOssBase64RequestParam qmOssBase64RequestParam) {
         String base64 = qmOssBase64RequestParam.getBase64();
         if (base64.length() > 1024 * 1024 * 5) {
-            QmOssResponse ossResponse = new QmOssResponse();
+            QmOssUploadResponse ossResponse = new QmOssUploadResponse();
             ossResponse.setStatus(0);
             ossResponse.setMsg("base64方式上传文件不能大于5M");
             return ossResponse;
@@ -105,8 +105,8 @@ public class QmOssClient {
         return realUploadBase64(qmOssBase64RequestParam, true);
     }
 
-    private QmOssResponse realUploadBase64(QmOssBase64RequestParam qmOssBase64RequestParam, boolean isRetry) {
-        QmOssResponse ossResponse = new QmOssResponse();
+    private QmOssUploadResponse realUploadBase64(QmOssBase64RequestParam qmOssBase64RequestParam, boolean isRetry) {
+        QmOssUploadResponse ossResponse = new QmOssUploadResponse();
         GetAccessTokenResponse getAccessTokenResponse = getAccessToken(appid, appsecret, false);
         int getAccessTokenResponseStatus = getAccessTokenResponse.getStatus();
         if (getAccessTokenResponseStatus == ResponseCode.FAILURE.code()) {
@@ -121,7 +121,7 @@ public class QmOssClient {
         params.put("name", qmOssBase64RequestParam.getOssName());
         params.put("data", qmOssBase64RequestParam.getBase64());
         String uploadUrl = String.format(QmOssUrls.UPLOAD_BASE64, accessToken);
-        String result = HttpUtils.sendPostRequest(uploadUrl, params.toJSONString());
+        String result = HttpUtils.postRequest(uploadUrl, params.toJSONString());
         if (!StringUtils.isBlank(result)) {
             JSONObject resJson = JSON.parseObject(result);
             int code = resJson.getIntValue("code");
@@ -166,12 +166,12 @@ public class QmOssClient {
      *
      * @return
      */
-    public QmOssResponse uploadMultipart(QmOssFileRequestParam qmOssFileRequestParam) {
+    public QmOssUploadResponse uploadMultipart(QmOssFileRequestParam qmOssFileRequestParam) {
         String filePath = qmOssFileRequestParam.getFilePath();
         String parentId = qmOssFileRequestParam.getParentId();
         File tmpFile = new File(filePath);
         if (!tmpFile.exists()) {
-            QmOssResponse ossResponse = new QmOssResponse();
+            QmOssUploadResponse ossResponse = new QmOssUploadResponse();
             ossResponse.setStatus(0);
             ossResponse.setMsg("file not exist");
             return ossResponse;
@@ -184,11 +184,11 @@ public class QmOssClient {
         return realUploadMultipart(qmOssFileRequestParam, true);
     }
 
-    private QmOssResponse realUploadMultipart(QmOssFileRequestParam qmOssFileRequestParam, boolean isRetry) {
+    private QmOssUploadResponse realUploadMultipart(QmOssFileRequestParam qmOssFileRequestParam, boolean isRetry) {
         String filePath = qmOssFileRequestParam.getFilePath();
         String parentId = qmOssFileRequestParam.getParentId();
         filePath = filePath.replaceAll("\\\\", "/");
-        QmOssResponse ossResponse = new QmOssResponse();
+        QmOssUploadResponse ossResponse = new QmOssUploadResponse();
         GetAccessTokenResponse getAccessTokenResponse = getAccessToken(appid, appsecret, false);
         int getAccessTokenResponseStatus = getAccessTokenResponse.getStatus();
         if (getAccessTokenResponseStatus == ResponseCode.FAILURE.code()) {
@@ -246,12 +246,12 @@ public class QmOssClient {
      *
      * @return
      */
-    private QmOssResponse uploadChunk(QmOssFileRequestParam qmOssFileRequestParam) {
+    private QmOssUploadResponse uploadChunk(QmOssFileRequestParam qmOssFileRequestParam) {
         String filePath = qmOssFileRequestParam.getFilePath();
         String parentId = qmOssFileRequestParam.getParentId();
         File tmpFile = new File(filePath);
         if (!tmpFile.exists()) {
-            QmOssResponse ossResponse = new QmOssResponse();
+            QmOssUploadResponse ossResponse = new QmOssUploadResponse();
             ossResponse.setStatus(0);
             ossResponse.setMsg("file not exist");
             return ossResponse;
@@ -265,7 +265,7 @@ public class QmOssClient {
         }
         filePath = filePath.replaceAll("\\\\", "/");
         String filename = filePath.substring(filePath.lastIndexOf("/") + 1);
-        QmOssResponse ossResponse = new QmOssResponse();
+        QmOssUploadResponse ossResponse = new QmOssUploadResponse();
         String identifier = UUID.randomUUID().toString().replaceAll("-", "");
         try {
             long totalSize = new File(filePath).length();
@@ -278,7 +278,7 @@ public class QmOssClient {
             }
             for (File file : files) {
                 //上传分片文件
-                QmOssResponse chunkUploadResponse = realUploadChunk(qmOssFileRequestParam, totalSize, files.length, file.getAbsolutePath(), identifier, filename, true);
+                QmOssUploadResponse chunkUploadResponse = realUploadChunk(qmOssFileRequestParam, totalSize, files.length, file.getAbsolutePath(), identifier, filename, true);
                 int state = chunkUploadResponse.getStatus();
                 if (state == 1) {
                     if (!StringUtils.isBlank(chunkUploadResponse.getData().getUrl())) {
@@ -303,8 +303,8 @@ public class QmOssClient {
         }
     }
 
-    private QmOssResponse realUploadChunk(QmOssFileRequestParam qmOssFileRequestParam, long totalSize, int totalChunks, String chunkFilePath, String identifier, String filename, boolean isRetry) {
-        QmOssResponse ossResponse = new QmOssResponse();
+    private QmOssUploadResponse realUploadChunk(QmOssFileRequestParam qmOssFileRequestParam, long totalSize, int totalChunks, String chunkFilePath, String identifier, String filename, boolean isRetry) {
+        QmOssUploadResponse ossResponse = new QmOssUploadResponse();
         GetAccessTokenResponse getAccessTokenResponse = getAccessToken(appid, appsecret, false);
         int getAccessTokenResponseStatus = getAccessTokenResponse.getStatus();
         if (getAccessTokenResponseStatus == ResponseCode.FAILURE.code()) {
@@ -360,6 +360,55 @@ public class QmOssClient {
             ossResponse.setMsg("接口无响应");
         }
         return ossResponse;
+    }
+
+    /**
+     * 获取对象的外网访问链接
+     */
+    public QmOssGetNetUrlResponse getOssNetUrl(String ossId, int expireIn) {
+        return getOssNetUrl(ossId, expireIn, true);
+    }
+
+    private QmOssGetNetUrlResponse getOssNetUrl(String ossId, int expireIn, boolean isRetry) {
+        QmOssGetNetUrlResponse qmOssGetNetUrlResponse = new QmOssGetNetUrlResponse();
+        GetAccessTokenResponse getAccessTokenResponse = getAccessToken(appid, appsecret, false);
+        int getAccessTokenResponseStatus = getAccessTokenResponse.getStatus();
+        if (getAccessTokenResponseStatus == ResponseCode.FAILURE.code()) {
+            qmOssGetNetUrlResponse.setStatus(ResponseCode.FAILURE.code());
+            qmOssGetNetUrlResponse.setMsg(getAccessTokenResponse.getMsg());
+            return qmOssGetNetUrlResponse;
+        }
+        String accessToken = getAccessTokenResponse.getAccessToken();
+        String getNetUrl = String.format(QmOssUrls.GET_NET_URL, accessToken);
+        Map<String, String> params = new HashMap<>();
+        params.put("ossId", ossId);
+        params.put("expireIn", String.valueOf(expireIn));
+        String result = HttpUtils.postRequest(getNetUrl, params);
+        if (!StringUtils.isBlank(result)) {
+            JSONObject resJson = JSON.parseObject(result);
+            int code = resJson.getIntValue("code");
+            String resMsg = resJson.getString("resMsg");
+            if (code == 200) {
+                JSONObject dataJson = resJson.getJSONObject("data");
+                String url = dataJson.getString("url");
+                qmOssGetNetUrlResponse.setUrl(url);
+                return qmOssGetNetUrlResponse;
+            } else if (code == 301) {
+                //如果服务端返回失效,则强制重新获取
+                getAccessToken(appid, appsecret, true);
+                if (isRetry) {
+                    //重试后不再重试
+                    getOssNetUrl(ossId, expireIn, false);
+                }
+            } else {
+                qmOssGetNetUrlResponse.setStatus(ResponseCode.FAILURE.code());
+                qmOssGetNetUrlResponse.setMsg(resMsg);
+                return qmOssGetNetUrlResponse;
+            }
+        } else {
+            qmOssGetNetUrlResponse.setMsg("接口无响应");
+        }
+        return qmOssGetNetUrlResponse;
     }
 
 }
