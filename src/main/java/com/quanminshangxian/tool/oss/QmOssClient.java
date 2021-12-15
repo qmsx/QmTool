@@ -6,8 +6,11 @@ import com.quanminshangxian.tool.code.ResponseCode;
 import com.quanminshangxian.tool.common.StringUtils;
 import com.quanminshangxian.tool.file.FileUtils;
 import com.quanminshangxian.tool.http.HttpUtils;
+import com.quanminshangxian.tool.mail.qm.QmMailClient;
 import com.quanminshangxian.tool.model.AccessTokenCache;
 import com.quanminshangxian.tool.model.GetAccessTokenResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.HashMap;
@@ -16,6 +19,8 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class QmOssClient {
+
+    private static final Logger log = LoggerFactory.getLogger(QmOssClient.class);
 
     private static final Map<String, AccessTokenCache> accessTokenCacheMap = new ConcurrentHashMap<String, AccessTokenCache>();
     private String appid;
@@ -56,6 +61,7 @@ public class QmOssClient {
         params.put("appid", appid);
         params.put("appsecret", appsecret);
         String result = HttpUtils.postRequest(QmOssUrls.GET_ACCESS_TOKEN, params.toJSONString());
+        log.info("GET_ACCESS_TOKEN result:" + result);
         if (result != null) {//重试一次
             JSONObject resJson = JSON.parseObject(result);
             int code = resJson.getIntValue("code");
@@ -123,6 +129,7 @@ public class QmOssClient {
         params.put("data", qmOssBase64RequestParam.getBase64());
         String uploadUrl = String.format(QmOssUrls.UPLOAD_BASE64, accessToken);
         String result = HttpUtils.postRequest(uploadUrl, params.toJSONString());
+        log.info("uploadBase64 result:" + result);
         if (!StringUtils.isBlank(result)) {
             JSONObject resJson = JSON.parseObject(result);
             int code = resJson.getIntValue("code");
@@ -203,6 +210,7 @@ public class QmOssClient {
         params.put("accessAuth", qmOssFileRequestParam.getAccessAuth());
         params.put("parentId", parentId);
         String result = HttpUtils.multiFormDataUpload(uploadUrl, filePath, params);
+        log.info("uploadMultipart result:" + result);
         if (!StringUtils.isBlank(result)) {
             JSONObject resJson = JSON.parseObject(result);
             int code = resJson.getIntValue("code");
@@ -324,6 +332,7 @@ public class QmOssClient {
         params.put("totalChunks", String.valueOf(totalChunks));
         params.put("totalSize", String.valueOf(totalSize));
         String result = HttpUtils.multiFormDataUpload(chunkUploadUrl, chunkFilePath, params);
+        log.info("uploadChunk result:" + result);
         if (!StringUtils.isBlank(result)) {
             JSONObject resJson = JSON.parseObject(result);
             int code = resJson.getIntValue("code");
@@ -385,6 +394,7 @@ public class QmOssClient {
         params.put("ossId", ossId);
         params.put("expireIn", String.valueOf(expireIn));
         String result = HttpUtils.postRequest(getNetUrl, params.toJSONString());
+        log.info("getOssNetUrl result:" + result);
         if (!StringUtils.isBlank(result)) {
             JSONObject resJson = JSON.parseObject(result);
             int code = resJson.getIntValue("code");

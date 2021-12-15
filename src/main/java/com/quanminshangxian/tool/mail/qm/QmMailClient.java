@@ -8,12 +8,16 @@ import com.quanminshangxian.tool.http.HttpUtils;
 import com.quanminshangxian.tool.model.AccessTokenCache;
 import com.quanminshangxian.tool.model.GetAccessTokenResponse;
 import com.quanminshangxian.tool.model.SendResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 
 public final class QmMailClient {
+
+    private static final Logger log = LoggerFactory.getLogger(QmMailClient.class);
 
     private static final Map<String, AccessTokenCache> accessTokenCacheMap = new ConcurrentHashMap<String, AccessTokenCache>();
 
@@ -55,7 +59,7 @@ public final class QmMailClient {
         params.put("appid", appid);
         params.put("appsecret", appsecret);
         String result = HttpUtils.postRequest(QmMailUrls.GET_ACCESS_TOKEN, params.toJSONString());
-        System.out.println(result);
+        log.info("GET_ACCESS_TOKEN result:" + result);
         if (result != null) {//重试一次
             JSONObject resJson = JSON.parseObject(result);
             int code = resJson.getIntValue("code");
@@ -117,7 +121,7 @@ public final class QmMailClient {
         params.put("content", content);
         String url = String.format(QmMailUrls.SEND_EMAIL, accessToken);
         String result = HttpUtils.postRequest(url, params.toJSONString());
-        System.out.println(result);
+        log.info("send email result:" + result);
         if (!StringUtils.isBlank(result)) {
             JSONObject resJson = JSON.parseObject(result);
             int code = resJson.getIntValue("code");

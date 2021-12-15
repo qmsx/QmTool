@@ -21,6 +21,8 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -31,6 +33,8 @@ import java.util.List;
 import java.util.Map;
 
 public class HttpUtils {
+
+    private static final Logger log = LoggerFactory.getLogger(HttpUtils.class);
 
     private static final int CONNECTION_REQUEST_TIMEOUT = 30 * 1000; //从连接池获取连接的超时时间
     private static final int CONNECTION_TIMEOUT = 60 * 1000;  //握手的超时时间
@@ -63,7 +67,7 @@ public class HttpUtils {
         closeableHttpClient = HttpClients.custom()
                 .setConnectionManager(poolConnManager).setDefaultRequestConfig(requestConfig).build();
         if (poolConnManager.getTotalStats() != null) {
-            System.out.println("new client pool " + poolConnManager.getTotalStats().toString());
+            log.info("new client pool " + poolConnManager.getTotalStats().toString());
         }
     }
 
@@ -75,6 +79,7 @@ public class HttpUtils {
      * get request
      */
     public static String getRequest(String url) {
+        log.info("start request {}", url);
         HttpGet httpRequest = new HttpGet(url);
         CloseableHttpResponse httpResponse = null;
         try {
@@ -104,6 +109,7 @@ public class HttpUtils {
      * send post request
      */
     public static String postRequest(String url, Map<String, String> params) {
+        log.info("start request {}", url);
         HttpPost httpRequest = new HttpPost(url);
         CloseableHttpResponse httpResponse = null;
         try {
@@ -138,6 +144,7 @@ public class HttpUtils {
      * send post request
      */
     public static String postRequest(String url, String params) {
+        log.info("start request {}", url);
         HttpPost httpRequest = new HttpPost(url);
         CloseableHttpResponse httpResponse = null;
         try {
@@ -170,6 +177,7 @@ public class HttpUtils {
      * send post json request
      */
     public static String postRequestForJson(String url, String params) {
+        log.info("start request {}", url);
         HttpPost httpRequest = new HttpPost(url);
         CloseableHttpResponse httpResponse = null;
         try {
@@ -206,6 +214,7 @@ public class HttpUtils {
      * @return
      */
     public static String putRequest(String url, String params) {
+        log.info("start request {}", url);
         HttpPut httpRequest = new HttpPut(url);
         CloseableHttpResponse httpResponse = null;
         try {
@@ -241,6 +250,7 @@ public class HttpUtils {
      * @return
      */
     public static String deleteRequest(String url) {
+        log.info("start request {}", url);
         HttpDelete httpRequest = new HttpDelete(url);
         CloseableHttpResponse httpResponse = null;
         try {
@@ -270,6 +280,7 @@ public class HttpUtils {
      * multipart/form-data 上传
      */
     public static String multiFormDataUpload(String url, String filePath, Map<String, String> params) {
+        log.info("start request {}", url);
         HttpPost httpRequest = new HttpPost(url);
         CloseableHttpResponse httpResponse = null;
         try {
