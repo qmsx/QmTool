@@ -60,9 +60,10 @@ public class QmOssClient {
             JSONObject resJson = JSON.parseObject(result);
             int code = resJson.getIntValue("code");
             if (code == 200) {
-                String access_token = resJson.getString("access_token");
+                JSONObject dataJson = resJson.getJSONObject("data");
+                String access_token = dataJson.getString("access_token");
                 //单位为秒
-                int expiresIn = resJson.getIntValue("expiresIn");
+                int expiresIn = dataJson.getIntValue("expiresIn");
                 AccessTokenCache accessTokenCache = new AccessTokenCache();
                 accessTokenCache.setAccessToken(access_token);
                 //提前 5 秒获取新accessToken
@@ -380,10 +381,10 @@ public class QmOssClient {
         }
         String accessToken = getAccessTokenResponse.getAccessToken();
         String getNetUrl = String.format(QmOssUrls.GET_NET_URL, accessToken);
-        Map<String, String> params = new HashMap<>();
+        JSONObject params = new JSONObject();
         params.put("ossId", ossId);
         params.put("expireIn", String.valueOf(expireIn));
-        String result = HttpUtils.postRequest(getNetUrl, params);
+        String result = HttpUtils.postRequest(getNetUrl, params.toJSONString());
         if (!StringUtils.isBlank(result)) {
             JSONObject resJson = JSON.parseObject(result);
             int code = resJson.getIntValue("code");
@@ -391,6 +392,8 @@ public class QmOssClient {
             if (code == 200) {
                 JSONObject dataJson = resJson.getJSONObject("data");
                 String url = dataJson.getString("url");
+                qmOssGetNetUrlResponse.setStatus(ResponseCode.SUCCESS.code());
+                qmOssGetNetUrlResponse.setMsg("success");
                 qmOssGetNetUrlResponse.setUrl(url);
                 return qmOssGetNetUrlResponse;
             } else if (code == 301) {
