@@ -55,12 +55,12 @@ public class AliMailClient {
             // 发送邮件
             Transport.send(message);
 
-            emailResponse.setStatus(ResponseCode.SUCCESS.code());
+            emailResponse.setStatus(ResponseCode.SUCCESS.code);
             emailResponse.setMsg("发送成功");
             return emailResponse;
         } catch (Exception e) {
             e.printStackTrace();
-            emailResponse.setStatus(ResponseCode.FAILURE.code());
+            emailResponse.setStatus(ResponseCode.FAILED.code);
             emailResponse.setMsg("发送失败，阿里企业邮箱服务连接失败");
             return emailResponse;
         }

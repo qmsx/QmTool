@@ -43,9 +43,9 @@ public class QmPayClient {
                 Long expireTime = accessTokenCache.getExpireTime();
                 if (System.currentTimeMillis() < expireTime) {
                     GetAccessTokenResponse getAccessTokenResponse = new GetAccessTokenResponse();
-                    getAccessTokenResponse.setStatus(ResponseCode.SUCCESS.code());
+                    getAccessTokenResponse.setStatus(ResponseCode.SUCCESS.code);
                     getAccessTokenResponse.setAccessToken(accessTokenCache.getAccessToken());
-                    getAccessTokenResponse.setMsg(ResponseCode.SUCCESS.desc());
+                    getAccessTokenResponse.setMsg(ResponseCode.SUCCESS.desc);
                     return getAccessTokenResponse;
                 }
             }
@@ -68,20 +68,20 @@ public class QmPayClient {
                 accessTokenCacheMap.put(appid, accessTokenCache);
                 //返回
                 GetAccessTokenResponse getAccessTokenResponse = new GetAccessTokenResponse();
-                getAccessTokenResponse.setStatus(ResponseCode.SUCCESS.code());
+                getAccessTokenResponse.setStatus(ResponseCode.SUCCESS.code);
                 getAccessTokenResponse.setAccessToken(accessTokenCache.getAccessToken());
-                getAccessTokenResponse.setMsg(ResponseCode.SUCCESS.desc());
+                getAccessTokenResponse.setMsg(ResponseCode.SUCCESS.desc);
                 return getAccessTokenResponse;
             } else {
-                String resMsg = resJson.getString("resMsg");
+                String msg = resJson.getString("msg");
                 GetAccessTokenResponse getAccessTokenResponse = new GetAccessTokenResponse();
-                getAccessTokenResponse.setStatus(ResponseCode.FAILURE.code());
-                getAccessTokenResponse.setMsg(resMsg);
+                getAccessTokenResponse.setStatus(ResponseCode.FAILED.code);
+                getAccessTokenResponse.setMsg(msg);
                 return getAccessTokenResponse;
             }
         } else {
             GetAccessTokenResponse getAccessTokenResponse = new GetAccessTokenResponse();
-            getAccessTokenResponse.setStatus(ResponseCode.FAILURE.code());
+            getAccessTokenResponse.setStatus(ResponseCode.FAILED.code);
             getAccessTokenResponse.setMsg("接口返回空");
             return getAccessTokenResponse;
         }
@@ -100,8 +100,8 @@ public class QmPayClient {
         CreateOrderResponse createOrderResponse = new CreateOrderResponse();
         GetAccessTokenResponse getAccessTokenResponse = getAccessToken(appid, appsecret, false);
         int getAccessTokenResponseStatus = getAccessTokenResponse.getStatus();
-        if (getAccessTokenResponseStatus == ResponseCode.FAILURE.code()) {
-            createOrderResponse.setStatus(ResponseCode.FAILURE.code());
+        if (getAccessTokenResponseStatus == ResponseCode.FAILED.code) {
+            createOrderResponse.setStatus(ResponseCode.FAILED.code);
             createOrderResponse.setMsg(getAccessTokenResponse.getMsg());
             return createOrderResponse;
         }
@@ -115,7 +115,7 @@ public class QmPayClient {
             int code = resJson.getIntValue("code");
             if (code == 200) {
                 String orderNo = resJson.getString("orderNo");
-                createOrderResponse.setStatus(ResponseCode.SUCCESS.code());
+                createOrderResponse.setStatus(ResponseCode.SUCCESS.code);
                 createOrderResponse.setOrderNo(orderNo);
                 return createOrderResponse;
             } else if (code == 301) {
@@ -126,13 +126,13 @@ public class QmPayClient {
                     return createOrder(orderInfo, false);
                 }
             } else {
-                String resMsg = resJson.getString("resMsg");
-                createOrderResponse.setStatus(ResponseCode.FAILURE.code());
-                createOrderResponse.setMsg(resMsg);
+                String msg = resJson.getString("msg");
+                createOrderResponse.setStatus(ResponseCode.FAILED.code);
+                createOrderResponse.setMsg(msg);
                 return createOrderResponse;
             }
         } else {
-            createOrderResponse.setStatus(ResponseCode.FAILURE.code());
+            createOrderResponse.setStatus(ResponseCode.FAILED.code);
             createOrderResponse.setMsg("接口无响应");
         }
         return createOrderResponse;
@@ -163,8 +163,8 @@ public class QmPayClient {
         DataResponse alipayAppPayParamsResponse = new DataResponse();
         GetAccessTokenResponse getAccessTokenResponse = getAccessToken(appid, appsecret, false);
         int getAccessTokenResponseStatus = getAccessTokenResponse.getStatus();
-        if (getAccessTokenResponseStatus == ResponseCode.FAILURE.code()) {
-            alipayAppPayParamsResponse.setStatus(ResponseCode.FAILURE.code());
+        if (getAccessTokenResponseStatus == ResponseCode.FAILED.code) {
+            alipayAppPayParamsResponse.setStatus(ResponseCode.FAILED.code);
             alipayAppPayParamsResponse.setMsg(getAccessTokenResponse.getMsg());
             return alipayAppPayParamsResponse;
         }
@@ -178,7 +178,7 @@ public class QmPayClient {
             int code = resJson.getIntValue("code");
             if (code == 200) {
                 String data = resJson.getString("data");
-                alipayAppPayParamsResponse.setStatus(ResponseCode.SUCCESS.code());
+                alipayAppPayParamsResponse.setStatus(ResponseCode.SUCCESS.code);
                 alipayAppPayParamsResponse.setData(data);
                 return alipayAppPayParamsResponse;
             } else if (code == 301) {
@@ -189,13 +189,13 @@ public class QmPayClient {
                     return getAlipayAppPayParams(orderNo, false);
                 }
             } else {
-                String resMsg = resJson.getString("resMsg");
-                alipayAppPayParamsResponse.setStatus(ResponseCode.FAILURE.code());
-                alipayAppPayParamsResponse.setMsg(resMsg);
+                String msg = resJson.getString("msg");
+                alipayAppPayParamsResponse.setStatus(ResponseCode.FAILED.code);
+                alipayAppPayParamsResponse.setMsg(msg);
                 return alipayAppPayParamsResponse;
             }
         } else {
-            alipayAppPayParamsResponse.setStatus(ResponseCode.FAILURE.code());
+            alipayAppPayParamsResponse.setStatus(ResponseCode.FAILED.code);
             alipayAppPayParamsResponse.setMsg("接口无响应");
         }
         return alipayAppPayParamsResponse;
@@ -226,8 +226,8 @@ public class QmPayClient {
         DataResponse wxAppPayParamsResponse = new DataResponse();
         GetAccessTokenResponse getAccessTokenResponse = getAccessToken(appid, appsecret, false);
         int getAccessTokenResponseStatus = getAccessTokenResponse.getStatus();
-        if (getAccessTokenResponseStatus == ResponseCode.FAILURE.code()) {
-            wxAppPayParamsResponse.setStatus(ResponseCode.FAILURE.code());
+        if (getAccessTokenResponseStatus == ResponseCode.FAILED.code) {
+            wxAppPayParamsResponse.setStatus(ResponseCode.FAILED.code);
             wxAppPayParamsResponse.setMsg(getAccessTokenResponse.getMsg());
             return wxAppPayParamsResponse;
         }
@@ -241,7 +241,7 @@ public class QmPayClient {
             int code = resJson.getIntValue("code");
             if (code == 200) {
                 String data = resJson.getString("data");
-                wxAppPayParamsResponse.setStatus(ResponseCode.SUCCESS.code());
+                wxAppPayParamsResponse.setStatus(ResponseCode.SUCCESS.code);
                 wxAppPayParamsResponse.setData(data);
                 return wxAppPayParamsResponse;
             } else if (code == 301) {
@@ -252,13 +252,13 @@ public class QmPayClient {
                     return getWxAppPayParams(orderNo, false);
                 }
             } else {
-                String resMsg = resJson.getString("resMsg");
-                wxAppPayParamsResponse.setStatus(ResponseCode.FAILURE.code());
-                wxAppPayParamsResponse.setMsg(resMsg);
+                String msg = resJson.getString("msg");
+                wxAppPayParamsResponse.setStatus(ResponseCode.FAILED.code);
+                wxAppPayParamsResponse.setMsg(msg);
                 return wxAppPayParamsResponse;
             }
         } else {
-            wxAppPayParamsResponse.setStatus(ResponseCode.FAILURE.code());
+            wxAppPayParamsResponse.setStatus(ResponseCode.FAILED.code);
             wxAppPayParamsResponse.setMsg("接口无响应");
         }
         return wxAppPayParamsResponse;

@@ -71,7 +71,7 @@ public class DingdingClient {
         JSONObject resJson = JSON.parseObject(result);
         int errcode = resJson.getIntValue("errcode");
         if (errcode == 0) {
-            dingdingResponse.setStatus(ResponseCode.SUCCESS.code());
+            dingdingResponse.setStatus(ResponseCode.SUCCESS.code);
             dingdingResponse.setMsg("发送成功");
             return dingdingResponse;
         }
@@ -117,7 +117,7 @@ public class DingdingClient {
         JSONObject resJson = JSON.parseObject(result);
         int errcode = resJson.getIntValue("errcode");
         if (errcode == 0) {
-            dingdingResponse.setStatus(ResponseCode.SUCCESS.code());
+            dingdingResponse.setStatus(ResponseCode.SUCCESS.code);
             dingdingResponse.setMsg("发送成功");
             return dingdingResponse;
         }

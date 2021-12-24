@@ -50,9 +50,9 @@ public class QmOssClient {
                 Long expireTime = accessTokenCache.getExpireTime();
                 if (System.currentTimeMillis() < expireTime) {
                     GetAccessTokenResponse getAccessTokenResponse = new GetAccessTokenResponse();
-                    getAccessTokenResponse.setStatus(ResponseCode.SUCCESS.code());
+                    getAccessTokenResponse.setStatus(ResponseCode.SUCCESS.code);
                     getAccessTokenResponse.setAccessToken(accessTokenCache.getAccessToken());
-                    getAccessTokenResponse.setMsg(ResponseCode.SUCCESS.desc());
+                    getAccessTokenResponse.setMsg(ResponseCode.SUCCESS.desc);
                     return getAccessTokenResponse;
                 }
             }
@@ -77,20 +77,20 @@ public class QmOssClient {
                 accessTokenCacheMap.put(appid, accessTokenCache);
                 //返回
                 GetAccessTokenResponse getAccessTokenResponse = new GetAccessTokenResponse();
-                getAccessTokenResponse.setStatus(ResponseCode.SUCCESS.code());
+                getAccessTokenResponse.setStatus(ResponseCode.SUCCESS.code);
                 getAccessTokenResponse.setAccessToken(accessTokenCache.getAccessToken());
-                getAccessTokenResponse.setMsg(ResponseCode.SUCCESS.desc());
+                getAccessTokenResponse.setMsg(ResponseCode.SUCCESS.desc);
                 return getAccessTokenResponse;
             } else {
-                String resMsg = resJson.getString("resMsg");
+                String msg = resJson.getString("msg");
                 GetAccessTokenResponse getAccessTokenResponse = new GetAccessTokenResponse();
-                getAccessTokenResponse.setStatus(ResponseCode.FAILURE.code());
-                getAccessTokenResponse.setMsg(resMsg);
+                getAccessTokenResponse.setStatus(ResponseCode.FAILED.code);
+                getAccessTokenResponse.setMsg(msg);
                 return getAccessTokenResponse;
             }
         } else {
             GetAccessTokenResponse getAccessTokenResponse = new GetAccessTokenResponse();
-            getAccessTokenResponse.setStatus(ResponseCode.FAILURE.code());
+            getAccessTokenResponse.setStatus(ResponseCode.FAILED.code);
             getAccessTokenResponse.setMsg("接口返回空");
             return getAccessTokenResponse;
         }
@@ -116,8 +116,8 @@ public class QmOssClient {
         QmOssUploadResponse ossResponse = new QmOssUploadResponse();
         GetAccessTokenResponse getAccessTokenResponse = getAccessToken(appid, appsecret, false);
         int getAccessTokenResponseStatus = getAccessTokenResponse.getStatus();
-        if (getAccessTokenResponseStatus == ResponseCode.FAILURE.code()) {
-            ossResponse.setStatus(ResponseCode.FAILURE.code());
+        if (getAccessTokenResponseStatus == ResponseCode.FAILED.code) {
+            ossResponse.setStatus(ResponseCode.FAILED.code);
             ossResponse.setMsg(getAccessTokenResponse.getMsg());
             return ossResponse;
         }
@@ -133,7 +133,7 @@ public class QmOssClient {
         if (!StringUtils.isBlank(result)) {
             JSONObject resJson = JSON.parseObject(result);
             int code = resJson.getIntValue("code");
-            String resMsg = resJson.getString("resMsg");
+            String msg = resJson.getString("msg");
             if (code == 200) {
                 JSONObject dataJson = resJson.getJSONObject("data");
                 String ossId = dataJson.getString("ossId");
@@ -141,7 +141,7 @@ public class QmOssClient {
                 Integer width = dataJson.getInteger("width");
                 Integer height = dataJson.getInteger("height");
                 Integer times = dataJson.getInteger("times");
-                ossResponse.setStatus(ResponseCode.SUCCESS.code());
+                ossResponse.setStatus(ResponseCode.SUCCESS.code);
                 ossResponse.setMsg("success");
                 QmOssResponseData ossResponseData = new QmOssResponseData();
                 ossResponseData.setOssId(ossId);
@@ -159,8 +159,8 @@ public class QmOssClient {
                     realUploadBase64(qmOssBase64RequestParam, false);
                 }
             } else {
-                ossResponse.setStatus(ResponseCode.FAILURE.code());
-                ossResponse.setMsg(resMsg);
+                ossResponse.setStatus(ResponseCode.FAILED.code);
+                ossResponse.setMsg(msg);
                 return ossResponse;
             }
         } else {
@@ -199,8 +199,8 @@ public class QmOssClient {
         QmOssUploadResponse ossResponse = new QmOssUploadResponse();
         GetAccessTokenResponse getAccessTokenResponse = getAccessToken(appid, appsecret, false);
         int getAccessTokenResponseStatus = getAccessTokenResponse.getStatus();
-        if (getAccessTokenResponseStatus == ResponseCode.FAILURE.code()) {
-            ossResponse.setStatus(ResponseCode.FAILURE.code());
+        if (getAccessTokenResponseStatus == ResponseCode.FAILED.code) {
+            ossResponse.setStatus(ResponseCode.FAILED.code);
             ossResponse.setMsg(getAccessTokenResponse.getMsg());
             return ossResponse;
         }
@@ -214,7 +214,7 @@ public class QmOssClient {
         if (!StringUtils.isBlank(result)) {
             JSONObject resJson = JSON.parseObject(result);
             int code = resJson.getIntValue("code");
-            String resMsg = resJson.getString("resMsg");
+            String msg = resJson.getString("msg");
             if (code == 200) {
                 JSONObject dataJson = resJson.getJSONObject("data");
                 String ossId = dataJson.getString("ossId");
@@ -222,7 +222,7 @@ public class QmOssClient {
                 Integer width = dataJson.getInteger("width");
                 Integer height = dataJson.getInteger("height");
                 Integer times = dataJson.getInteger("times");
-                ossResponse.setStatus(ResponseCode.SUCCESS.code());
+                ossResponse.setStatus(ResponseCode.SUCCESS.code);
                 ossResponse.setMsg("success");
                 QmOssResponseData ossResponseData = new QmOssResponseData();
                 ossResponseData.setOssId(ossId);
@@ -240,8 +240,8 @@ public class QmOssClient {
                     realUploadMultipart(qmOssFileRequestParam, false);
                 }
             } else {
-                ossResponse.setStatus(ResponseCode.FAILURE.code());
-                ossResponse.setMsg(resMsg);
+                ossResponse.setStatus(ResponseCode.FAILED.code);
+                ossResponse.setMsg(msg);
                 return ossResponse;
             }
         } else {
@@ -296,17 +296,17 @@ public class QmOssClient {
                         return chunkUploadResponse;
                     }
                 } else {
-                    ossResponse.setStatus(ResponseCode.FAILURE.code());
+                    ossResponse.setStatus(ResponseCode.FAILED.code);
                     ossResponse.setMsg("chunk upload failure");
                     return ossResponse;
                 }
             }
-            ossResponse.setStatus(ResponseCode.FAILURE.code());
+            ossResponse.setStatus(ResponseCode.FAILED.code);
             ossResponse.setMsg("unknown error");
             return ossResponse;
         } catch (Exception e) {
             e.printStackTrace();
-            ossResponse.setStatus(ResponseCode.FAILURE.code());
+            ossResponse.setStatus(ResponseCode.FAILED.code);
             ossResponse.setMsg("cut failure");
             return ossResponse;
         }
@@ -316,8 +316,8 @@ public class QmOssClient {
         QmOssUploadResponse ossResponse = new QmOssUploadResponse();
         GetAccessTokenResponse getAccessTokenResponse = getAccessToken(appid, appsecret, false);
         int getAccessTokenResponseStatus = getAccessTokenResponse.getStatus();
-        if (getAccessTokenResponseStatus == ResponseCode.FAILURE.code()) {
-            ossResponse.setStatus(ResponseCode.FAILURE.code());
+        if (getAccessTokenResponseStatus == ResponseCode.FAILED.code) {
+            ossResponse.setStatus(ResponseCode.FAILED.code);
             ossResponse.setMsg(getAccessTokenResponse.getMsg());
             return ossResponse;
         }
@@ -336,7 +336,7 @@ public class QmOssClient {
         if (!StringUtils.isBlank(result)) {
             JSONObject resJson = JSON.parseObject(result);
             int code = resJson.getIntValue("code");
-            String resMsg = resJson.getString("resMsg");
+            String msg = resJson.getString("msg");
             if (code == 200) {
                 JSONObject dataJson = resJson.getJSONObject("data");
                 String ossId = dataJson.getString("ossId");
@@ -344,7 +344,7 @@ public class QmOssClient {
                 Integer width = dataJson.getInteger("width");
                 Integer height = dataJson.getInteger("height");
                 Integer times = dataJson.getInteger("times");
-                ossResponse.setStatus(ResponseCode.SUCCESS.code());
+                ossResponse.setStatus(ResponseCode.SUCCESS.code);
                 ossResponse.setMsg("success");
                 QmOssResponseData ossResponseData = new QmOssResponseData();
                 ossResponseData.setOssId(ossId);
@@ -362,8 +362,8 @@ public class QmOssClient {
                     realUploadChunk(qmOssFileRequestParam, totalSize, totalChunks, chunkFilePath, identifier, filename, false);
                 }
             } else {
-                ossResponse.setStatus(ResponseCode.FAILURE.code());
-                ossResponse.setMsg(resMsg);
+                ossResponse.setStatus(ResponseCode.FAILED.code);
+                ossResponse.setMsg(msg);
                 return ossResponse;
             }
         } else {
@@ -383,8 +383,8 @@ public class QmOssClient {
         QmOssGetNetUrlResponse qmOssGetNetUrlResponse = new QmOssGetNetUrlResponse();
         GetAccessTokenResponse getAccessTokenResponse = getAccessToken(appid, appsecret, false);
         int getAccessTokenResponseStatus = getAccessTokenResponse.getStatus();
-        if (getAccessTokenResponseStatus == ResponseCode.FAILURE.code()) {
-            qmOssGetNetUrlResponse.setStatus(ResponseCode.FAILURE.code());
+        if (getAccessTokenResponseStatus == ResponseCode.FAILED.code) {
+            qmOssGetNetUrlResponse.setStatus(ResponseCode.FAILED.code);
             qmOssGetNetUrlResponse.setMsg(getAccessTokenResponse.getMsg());
             return qmOssGetNetUrlResponse;
         }
@@ -398,11 +398,11 @@ public class QmOssClient {
         if (!StringUtils.isBlank(result)) {
             JSONObject resJson = JSON.parseObject(result);
             int code = resJson.getIntValue("code");
-            String resMsg = resJson.getString("resMsg");
+            String msg = resJson.getString("msg");
             if (code == 200) {
                 JSONObject dataJson = resJson.getJSONObject("data");
                 String url = dataJson.getString("url");
-                qmOssGetNetUrlResponse.setStatus(ResponseCode.SUCCESS.code());
+                qmOssGetNetUrlResponse.setStatus(ResponseCode.SUCCESS.code);
                 qmOssGetNetUrlResponse.setMsg("success");
                 qmOssGetNetUrlResponse.setUrl(url);
                 return qmOssGetNetUrlResponse;
@@ -414,14 +414,63 @@ public class QmOssClient {
                     getOssNetUrl(ossId, expireIn, false);
                 }
             } else {
-                qmOssGetNetUrlResponse.setStatus(ResponseCode.FAILURE.code());
-                qmOssGetNetUrlResponse.setMsg(resMsg);
+                qmOssGetNetUrlResponse.setStatus(ResponseCode.FAILED.code);
+                qmOssGetNetUrlResponse.setMsg(msg);
                 return qmOssGetNetUrlResponse;
             }
         } else {
             qmOssGetNetUrlResponse.setMsg("接口无响应");
         }
         return qmOssGetNetUrlResponse;
+    }
+
+    /**
+     * 对象重命名
+     */
+    public QmOssRenameResponse rename(String ossId, String ossName) {
+        return rename(ossId, ossName, true);
+    }
+
+    private QmOssRenameResponse rename(String ossId, String ossName, boolean isRetry) {
+        QmOssRenameResponse qmOssRenameResponse = new QmOssRenameResponse();
+        GetAccessTokenResponse getAccessTokenResponse = getAccessToken(appid, appsecret, false);
+        int getAccessTokenResponseStatus = getAccessTokenResponse.getStatus();
+        if (getAccessTokenResponseStatus == ResponseCode.FAILED.code) {
+            qmOssRenameResponse.setStatus(ResponseCode.FAILED.code);
+            qmOssRenameResponse.setMsg(getAccessTokenResponse.getMsg());
+            return qmOssRenameResponse;
+        }
+        String accessToken = getAccessTokenResponse.getAccessToken();
+        String renameUrl = String.format(QmOssUrls.RENAME_URL, accessToken);
+        JSONObject params = new JSONObject();
+        params.put("ossId", ossId);
+        params.put("ossName", ossName);
+        String result = HttpUtils.postRequest(renameUrl, params.toJSONString());
+        log.info("rename result:" + result);
+        if (!StringUtils.isBlank(result)) {
+            JSONObject resJson = JSON.parseObject(result);
+            int code = resJson.getIntValue("code");
+            String msg = resJson.getString("msg");
+            if (code == 200) {
+                qmOssRenameResponse.setStatus(ResponseCode.SUCCESS.code);
+                qmOssRenameResponse.setMsg(msg);
+                return qmOssRenameResponse;
+            } else if (code == 301) {
+                //如果服务端返回失效,则强制重新获取
+                getAccessToken(appid, appsecret, true);
+                if (isRetry) {
+                    //重试后不再重试
+                    rename(ossId, ossName, false);
+                }
+            } else {
+                qmOssRenameResponse.setStatus(ResponseCode.FAILED.code);
+                qmOssRenameResponse.setMsg(msg);
+                return qmOssRenameResponse;
+            }
+        } else {
+            qmOssRenameResponse.setMsg("接口无响应");
+        }
+        return qmOssRenameResponse;
     }
 
 }

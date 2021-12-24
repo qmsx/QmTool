@@ -54,7 +54,7 @@ public class QyWxClient {
         JSONObject resJson = JSON.parseObject(result);
         int errcode = resJson.getIntValue("errcode");
         if (errcode == 0) {
-            wxResponse.setStatus(ResponseCode.SUCCESS.code());
+            wxResponse.setStatus(ResponseCode.SUCCESS.code);
             wxResponse.setMsg("发送成功");
             return wxResponse;
         }
@@ -92,7 +92,7 @@ public class QyWxClient {
         JSONObject resJson = JSON.parseObject(result);
         int errcode = resJson.getIntValue("errcode");
         if (errcode == 0) {
-            wxResponse.setStatus(ResponseCode.SUCCESS.code());
+            wxResponse.setStatus(ResponseCode.SUCCESS.code);
             wxResponse.setMsg("发送成功");
             return wxResponse;
         }
@@ -135,7 +135,7 @@ public class QyWxClient {
         JSONObject resJson = JSON.parseObject(result);
         int errcode = resJson.getIntValue("errcode");
         if (errcode == 0) {
-            wxResponse.setStatus(ResponseCode.SUCCESS.code());
+            wxResponse.setStatus(ResponseCode.SUCCESS.code);
             wxResponse.setMsg("发送成功");
             return wxResponse;
         }
@@ -180,7 +180,7 @@ public class QyWxClient {
         JSONObject resJson = JSON.parseObject(result);
         int errcode = resJson.getIntValue("errcode");
         if (errcode == 0) {
-            wxResponse.setStatus(ResponseCode.SUCCESS.code());
+            wxResponse.setStatus(ResponseCode.SUCCESS.code);
             wxResponse.setMsg("发送成功");
             return wxResponse;
         }

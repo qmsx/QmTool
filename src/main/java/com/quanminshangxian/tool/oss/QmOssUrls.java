@@ -24,5 +24,9 @@ public final class QmOssUrls {
      * 获取对象的外网链接
      */
     static String GET_NET_URL = API_BASE_URL + "/oss/getNetUrl?access_token=%s";
+    /**
+     * 对象重命名
+     */
+    static String RENAME_URL = API_BASE_URL + "/oss/rename?access_token=%s";
 
 }

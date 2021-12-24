@@ -75,12 +75,12 @@ public class TxMailClient {
             // 7. 关闭连接
             transport.close();
 
-            emailResponse.setStatus(ResponseCode.SUCCESS.code());
+            emailResponse.setStatus(ResponseCode.SUCCESS.code);
             emailResponse.setMsg("发送成功");
             return emailResponse;
         } catch (Exception e) {
             e.printStackTrace();
-            emailResponse.setStatus(ResponseCode.FAILURE.code());
+            emailResponse.setStatus(ResponseCode.FAILED.code);
             emailResponse.setMsg("发送失败，腾讯企业邮箱服务连接失败");
             return emailResponse;
         }

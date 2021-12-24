@@ -43,9 +43,9 @@ public class QmSmsClient {
                 Long expireTime = accessTokenCache.getExpireTime();
                 if (System.currentTimeMillis() < expireTime) {
                     GetAccessTokenResponse getAccessTokenResponse = new GetAccessTokenResponse();
-                    getAccessTokenResponse.setStatus(ResponseCode.SUCCESS.code());
+                    getAccessTokenResponse.setStatus(ResponseCode.SUCCESS.code);
                     getAccessTokenResponse.setAccessToken(accessTokenCache.getAccessToken());
-                    getAccessTokenResponse.setMsg(ResponseCode.SUCCESS.desc());
+                    getAccessTokenResponse.setMsg(ResponseCode.SUCCESS.desc);
                     return getAccessTokenResponse;
                 }
             }
@@ -69,20 +69,20 @@ public class QmSmsClient {
                 accessTokenCacheMap.put(appid, accessTokenCache);
                 //返回
                 GetAccessTokenResponse getAccessTokenResponse = new GetAccessTokenResponse();
-                getAccessTokenResponse.setStatus(ResponseCode.SUCCESS.code());
+                getAccessTokenResponse.setStatus(ResponseCode.SUCCESS.code);
                 getAccessTokenResponse.setAccessToken(accessTokenCache.getAccessToken());
-                getAccessTokenResponse.setMsg(ResponseCode.SUCCESS.desc());
+                getAccessTokenResponse.setMsg(ResponseCode.SUCCESS.desc);
                 return getAccessTokenResponse;
             } else {
-                String resMsg = resJson.getString("resMsg");
+                String msg = resJson.getString("msg");
                 GetAccessTokenResponse getAccessTokenResponse = new GetAccessTokenResponse();
-                getAccessTokenResponse.setStatus(ResponseCode.FAILURE.code());
-                getAccessTokenResponse.setMsg(resMsg);
+                getAccessTokenResponse.setStatus(ResponseCode.FAILED.code);
+                getAccessTokenResponse.setMsg(msg);
                 return getAccessTokenResponse;
             }
         } else {
             GetAccessTokenResponse getAccessTokenResponse = new GetAccessTokenResponse();
-            getAccessTokenResponse.setStatus(ResponseCode.FAILURE.code());
+            getAccessTokenResponse.setStatus(ResponseCode.FAILED.code);
             getAccessTokenResponse.setMsg("接口返回空");
             return getAccessTokenResponse;
         }
@@ -101,8 +101,8 @@ public class QmSmsClient {
         SendResponse smsResponse = new SendResponse();
         GetAccessTokenResponse getAccessTokenResponse = getAccessToken(appid, appsecret, false);
         int getAccessTokenResponseStatus = getAccessTokenResponse.getStatus();
-        if (getAccessTokenResponseStatus == ResponseCode.FAILURE.code()) {
-            smsResponse.setStatus(ResponseCode.FAILURE.code());
+        if (getAccessTokenResponseStatus == ResponseCode.FAILED.code) {
+            smsResponse.setStatus(ResponseCode.FAILED.code);
             smsResponse.setMsg(getAccessTokenResponse.getMsg());
             return smsResponse;
         }
@@ -116,10 +116,10 @@ public class QmSmsClient {
         if (!StringUtils.isBlank(result)) {
             JSONObject resJson = JSON.parseObject(result);
             int code = resJson.getIntValue("code");
-            String resMsg = resJson.getString("resMsg");
+            String msg = resJson.getString("msg");
             if (code == 200) {
-                smsResponse.setStatus(ResponseCode.SUCCESS.code());
-                smsResponse.setMsg(resMsg);
+                smsResponse.setStatus(ResponseCode.SUCCESS.code);
+                smsResponse.setMsg(msg);
                 return smsResponse;
             } else if (code == 301) {
                 //如果服务端返回失效,则强制重新获取
@@ -129,8 +129,8 @@ public class QmSmsClient {
                     realSend(tplId, mobile, var, false);
                 }
             } else {
-                smsResponse.setStatus(ResponseCode.FAILURE.code());
-                smsResponse.setMsg(resMsg);
+                smsResponse.setStatus(ResponseCode.FAILED.code);
+                smsResponse.setMsg(msg);
                 return smsResponse;
             }
         } else {
