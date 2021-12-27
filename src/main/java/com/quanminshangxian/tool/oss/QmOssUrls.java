@@ -28,5 +28,9 @@ public final class QmOssUrls {
      * 对象重命名
      */
     static String RENAME_URL = API_BASE_URL + "/oss/rename?access_token=%s";
+    /**
+     * 删除对象
+     */
+    static String DELETE_URL = API_BASE_URL + "/oss/delete?access_token=%s";
 
 }

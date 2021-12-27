@@ -473,4 +473,52 @@ public class QmOssClient {
         return qmOssRenameResponse;
     }
 
+    /**
+     * 删除对象
+     */
+    public QmOssRenameResponse delete(String ossId) {
+        return delete(ossId, true);
+    }
+
+    private QmOssRenameResponse delete(String ossId, boolean isRetry) {
+        QmOssRenameResponse qmOssRenameResponse = new QmOssRenameResponse();
+        GetAccessTokenResponse getAccessTokenResponse = getAccessToken(appid, appsecret, false);
+        int getAccessTokenResponseStatus = getAccessTokenResponse.getStatus();
+        if (getAccessTokenResponseStatus == ResponseCode.FAILED.code) {
+            qmOssRenameResponse.setStatus(ResponseCode.FAILED.code);
+            qmOssRenameResponse.setMsg(getAccessTokenResponse.getMsg());
+            return qmOssRenameResponse;
+        }
+        String accessToken = getAccessTokenResponse.getAccessToken();
+        String deleteUrl = String.format(QmOssUrls.DELETE_URL, accessToken);
+        JSONObject params = new JSONObject();
+        params.put("ossId", ossId);
+        String result = HttpUtils.postRequest(deleteUrl, params.toJSONString());
+        log.info("delete result:" + result);
+        if (!StringUtils.isBlank(result)) {
+            JSONObject resJson = JSON.parseObject(result);
+            int code = resJson.getIntValue("code");
+            String msg = resJson.getString("msg");
+            if (code == 200) {
+                qmOssRenameResponse.setStatus(ResponseCode.SUCCESS.code);
+                qmOssRenameResponse.setMsg(msg);
+                return qmOssRenameResponse;
+            } else if (code == 301) {
+                //如果服务端返回失效,则强制重新获取
+                getAccessToken(appid, appsecret, true);
+                if (isRetry) {
+                    //重试后不再重试
+                    delete(ossId, false);
+                }
+            } else {
+                qmOssRenameResponse.setStatus(ResponseCode.FAILED.code);
+                qmOssRenameResponse.setMsg(msg);
+                return qmOssRenameResponse;
+            }
+        } else {
+            qmOssRenameResponse.setMsg("接口无响应");
+        }
+        return qmOssRenameResponse;
+    }
+
 }
