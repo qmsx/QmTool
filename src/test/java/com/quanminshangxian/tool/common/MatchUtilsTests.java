@@ -1,9 +1,14 @@
 package com.quanminshangxian.tool.common;
 
+import com.quanminshangxian.tool.oss.QmOssClient;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MatchUtilsTests {
+
+    private static final Logger log = LoggerFactory.getLogger(MatchUtilsTests.class);
 
     @Test
     public void isMatch() {
@@ -11,6 +16,7 @@ public class MatchUtilsTests {
         Assert.assertTrue(match);
 
         boolean match1 = MatchUtils.isMatch("[0-9]*", "123456A");
+        log.info("ceshi ...");
         Assert.assertTrue(!match1);
     }
 
