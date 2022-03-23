@@ -7,7 +7,7 @@ import com.quanminshangxian.tool.common.StringUtils;
 import com.quanminshangxian.tool.http.HttpUtils;
 import com.quanminshangxian.tool.model.AccessTokenCache;
 import com.quanminshangxian.tool.model.CreateOrderResponse;
-import com.quanminshangxian.tool.model.DataResponse;
+import com.quanminshangxian.tool.model.CommonResponse;
 import com.quanminshangxian.tool.model.GetAccessTokenResponse;
 
 import java.util.Map;
@@ -155,12 +155,12 @@ public class QmPayClient {
     /**
      * 获取支付宝App支付参数
      */
-    public DataResponse getAlipayAppPayParams(String orderNo) {
+    public CommonResponse getAlipayAppPayParams(String orderNo) {
         return getAlipayAppPayParams(orderNo, true);
     }
 
-    private DataResponse getAlipayAppPayParams(String orderNo, boolean isRetry) {
-        DataResponse alipayAppPayParamsResponse = new DataResponse();
+    private CommonResponse getAlipayAppPayParams(String orderNo, boolean isRetry) {
+        CommonResponse alipayAppPayParamsResponse = new CommonResponse();
         GetAccessTokenResponse getAccessTokenResponse = getAccessToken(appid, appsecret, false);
         int getAccessTokenResponseStatus = getAccessTokenResponse.getStatus();
         if (getAccessTokenResponseStatus == ResponseCode.FAILED.code) {
@@ -218,12 +218,12 @@ public class QmPayClient {
     /**
      * 获取微信App支付参数
      */
-    public DataResponse getWxAppPayParams(String orderNo) {
+    public CommonResponse getWxAppPayParams(String orderNo) {
         return getWxAppPayParams(orderNo, true);
     }
 
-    private DataResponse getWxAppPayParams(String orderNo, boolean isRetry) {
-        DataResponse wxAppPayParamsResponse = new DataResponse();
+    private CommonResponse getWxAppPayParams(String orderNo, boolean isRetry) {
+        CommonResponse wxAppPayParamsResponse = new CommonResponse();
         GetAccessTokenResponse getAccessTokenResponse = getAccessToken(appid, appsecret, false);
         int getAccessTokenResponseStatus = getAccessTokenResponse.getStatus();
         if (getAccessTokenResponseStatus == ResponseCode.FAILED.code) {

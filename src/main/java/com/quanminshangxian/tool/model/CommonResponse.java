@@ -1,6 +1,6 @@
 package com.quanminshangxian.tool.model;
 
-public class DataResponse {
+public class CommonResponse {
 
     // 1：成功 0：失败
     private int status;
