@@ -78,7 +78,7 @@ public class HttpUtils {
     /**
      * get request
      */
-    public static String getRequest(String url) {
+    public static String doGetRequest(String url) {
         log.info("start request {}", url);
         HttpGet httpRequest = new HttpGet(url);
         CloseableHttpResponse httpResponse = null;
@@ -108,7 +108,7 @@ public class HttpUtils {
     /**
      * send post request
      */
-    public static String postRequest(String url, Map<String, String> params) {
+    public static String doPostRequest(String url, Map<String, String> params) {
         log.info("start request {}", url);
         HttpPost httpRequest = new HttpPost(url);
         CloseableHttpResponse httpResponse = null;
@@ -143,7 +143,7 @@ public class HttpUtils {
     /**
      * send post request
      */
-    public static String postRequest(String url, String params) {
+    public static String doPostRequest(String url, String params) {
         log.info("start request {}", url);
         HttpPost httpRequest = new HttpPost(url);
         CloseableHttpResponse httpResponse = null;
@@ -176,7 +176,7 @@ public class HttpUtils {
     /**
      * send post json request
      */
-    public static String postRequestForJson(String url, String params) {
+    public static String doPostRequestForJson(String url, String params) {
         log.info("start request {}", url);
         HttpPost httpRequest = new HttpPost(url);
         CloseableHttpResponse httpResponse = null;
@@ -213,7 +213,7 @@ public class HttpUtils {
      * @param url
      * @return
      */
-    public static String putRequest(String url, String params) {
+    public static String doPutRequest(String url, String params) {
         log.info("start request {}", url);
         HttpPut httpRequest = new HttpPut(url);
         CloseableHttpResponse httpResponse = null;
@@ -249,7 +249,7 @@ public class HttpUtils {
      * @param url
      * @return
      */
-    public static String deleteRequest(String url) {
+    public static String doDeleteRequest(String url) {
         log.info("start request {}", url);
         HttpDelete httpRequest = new HttpDelete(url);
         CloseableHttpResponse httpResponse = null;

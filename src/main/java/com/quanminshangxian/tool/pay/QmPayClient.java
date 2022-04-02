@@ -53,14 +53,14 @@ public class QmPayClient {
         JSONObject params = new JSONObject();
         params.put("appid", appid);
         params.put("appsecret", appsecret);
-        String result = HttpUtils.postRequest(QmPayUrls.GET_ACCESS_TOKEN, params.toJSONString());
+        String result = HttpUtils.doPostRequest(QmPayUrls.GET_ACCESS_TOKEN, params.toJSONString());
         if (result != null) {//重试一次
             JSONObject resJson = JSON.parseObject(result);
             int code = resJson.getIntValue("code");
             if (code == 200) {
-                String access_token = resJson.getString("access_token");
-                //单位为秒
-                int expiresIn = resJson.getIntValue("expiresIn");
+                JSONObject dataJson = resJson.getJSONObject("data");
+                String access_token = dataJson.getString("access_token");
+                int expiresIn = dataJson.getIntValue("expiresIn");
                 AccessTokenCache accessTokenCache = new AccessTokenCache();
                 accessTokenCache.setAccessToken(access_token);
                 //提前 5 秒获取新accessToken
@@ -93,47 +93,47 @@ public class QmPayClient {
      * @return
      */
     public CreateOrderResponse createOrder(String orderInfo) {
-        return createOrder(orderInfo, true);
-    }
-
-    private CreateOrderResponse createOrder(String orderInfo, boolean isRetry) {
         CreateOrderResponse createOrderResponse = new CreateOrderResponse();
-        GetAccessTokenResponse getAccessTokenResponse = getAccessToken(appid, appsecret, false);
-        int getAccessTokenResponseStatus = getAccessTokenResponse.getStatus();
-        if (getAccessTokenResponseStatus == ResponseCode.FAILED.code) {
-            createOrderResponse.setStatus(ResponseCode.FAILED.code);
-            createOrderResponse.setMsg(getAccessTokenResponse.getMsg());
-            return createOrderResponse;
-        }
-        String accessToken = getAccessTokenResponse.getAccessToken();
-        JSONObject params = new JSONObject();
-        params.put("order", orderInfo);
-        String url = String.format(QmPayUrls.CREATE_ORDER, accessToken);
-        String result = HttpUtils.postRequest(url, params.toJSONString());
-        if (!StringUtils.isBlank(result)) {
-            JSONObject resJson = JSON.parseObject(result);
-            int code = resJson.getIntValue("code");
-            if (code == 200) {
-                String orderNo = resJson.getString("orderNo");
-                createOrderResponse.setStatus(ResponseCode.SUCCESS.code);
-                createOrderResponse.setOrderNo(orderNo);
-                return createOrderResponse;
-            } else if (code == 301) {
-                //如果服务端返回失效,则强制重新获取
-                getAccessToken(appid, appsecret, true);
-                if (isRetry) {
-                    //重试后不再重试
-                    return createOrder(orderInfo, false);
-                }
-            } else {
-                String msg = resJson.getString("msg");
+
+        int EXEC_COUNT = 0;
+        int MAX_COUNT = 2;
+        while (EXEC_COUNT < MAX_COUNT) {
+            EXEC_COUNT++;
+
+            GetAccessTokenResponse getAccessTokenResponse = getAccessToken(appid, appsecret, false);
+            int getAccessTokenResponseStatus = getAccessTokenResponse.getStatus();
+            if (getAccessTokenResponseStatus == ResponseCode.FAILED.code) {
                 createOrderResponse.setStatus(ResponseCode.FAILED.code);
-                createOrderResponse.setMsg(msg);
+                createOrderResponse.setMsg(getAccessTokenResponse.getMsg());
                 return createOrderResponse;
             }
-        } else {
-            createOrderResponse.setStatus(ResponseCode.FAILED.code);
-            createOrderResponse.setMsg("接口无响应");
+            String accessToken = getAccessTokenResponse.getAccessToken();
+            JSONObject params = new JSONObject();
+            params.put("order", orderInfo);
+            String url = String.format(QmPayUrls.CREATE_ORDER, accessToken);
+            String result = HttpUtils.doPostRequest(url, params.toJSONString());
+            if (!StringUtils.isBlank(result)) {
+                JSONObject resJson = JSON.parseObject(result);
+                int code = resJson.getIntValue("code");
+                if (code == 200) {
+                    String orderNo = resJson.getString("orderNo");
+                    createOrderResponse.setStatus(ResponseCode.SUCCESS.code);
+                    createOrderResponse.setOrderNo(orderNo);
+                    return createOrderResponse;
+                } else if (code == 301) {
+                    //如果服务端返回失效,则强制重新获取
+                    getAccessToken(appid, appsecret, true);
+                } else {
+                    String msg = resJson.getString("msg");
+                    createOrderResponse.setStatus(ResponseCode.FAILED.code);
+                    createOrderResponse.setMsg(msg);
+                    return createOrderResponse;
+                }
+            } else {
+                createOrderResponse.setStatus(ResponseCode.FAILED.code);
+                createOrderResponse.setMsg("接口无响应");
+                return createOrderResponse;
+            }
         }
         return createOrderResponse;
     }
@@ -156,47 +156,47 @@ public class QmPayClient {
      * 获取支付宝App支付参数
      */
     public CommonResponse getAlipayAppPayParams(String orderNo) {
-        return getAlipayAppPayParams(orderNo, true);
-    }
-
-    private CommonResponse getAlipayAppPayParams(String orderNo, boolean isRetry) {
         CommonResponse alipayAppPayParamsResponse = new CommonResponse();
-        GetAccessTokenResponse getAccessTokenResponse = getAccessToken(appid, appsecret, false);
-        int getAccessTokenResponseStatus = getAccessTokenResponse.getStatus();
-        if (getAccessTokenResponseStatus == ResponseCode.FAILED.code) {
-            alipayAppPayParamsResponse.setStatus(ResponseCode.FAILED.code);
-            alipayAppPayParamsResponse.setMsg(getAccessTokenResponse.getMsg());
-            return alipayAppPayParamsResponse;
-        }
-        String accessToken = getAccessTokenResponse.getAccessToken();
-        JSONObject params = new JSONObject();
-        params.put("orderNo", orderNo);
-        String url = String.format(QmPayUrls.ALIPAY_APP_PAY_URL, accessToken);
-        String result = HttpUtils.postRequest(url, params.toJSONString());
-        if (!StringUtils.isBlank(result)) {
-            JSONObject resJson = JSON.parseObject(result);
-            int code = resJson.getIntValue("code");
-            if (code == 200) {
-                String data = resJson.getString("data");
-                alipayAppPayParamsResponse.setStatus(ResponseCode.SUCCESS.code);
-                alipayAppPayParamsResponse.setData(data);
-                return alipayAppPayParamsResponse;
-            } else if (code == 301) {
-                //如果服务端返回失效,则强制重新获取
-                getAccessToken(appid, appsecret, true);
-                if (isRetry) {
-                    //重试后不再重试
-                    return getAlipayAppPayParams(orderNo, false);
-                }
-            } else {
-                String msg = resJson.getString("msg");
+
+        int EXEC_COUNT = 0;
+        int MAX_COUNT = 2;
+        while (EXEC_COUNT < MAX_COUNT) {
+            EXEC_COUNT++;
+
+            GetAccessTokenResponse getAccessTokenResponse = getAccessToken(appid, appsecret, false);
+            int getAccessTokenResponseStatus = getAccessTokenResponse.getStatus();
+            if (getAccessTokenResponseStatus == ResponseCode.FAILED.code) {
                 alipayAppPayParamsResponse.setStatus(ResponseCode.FAILED.code);
-                alipayAppPayParamsResponse.setMsg(msg);
+                alipayAppPayParamsResponse.setMsg(getAccessTokenResponse.getMsg());
                 return alipayAppPayParamsResponse;
             }
-        } else {
-            alipayAppPayParamsResponse.setStatus(ResponseCode.FAILED.code);
-            alipayAppPayParamsResponse.setMsg("接口无响应");
+            String accessToken = getAccessTokenResponse.getAccessToken();
+            JSONObject params = new JSONObject();
+            params.put("orderNo", orderNo);
+            String url = String.format(QmPayUrls.ALIPAY_APP_PAY_URL, accessToken);
+            String result = HttpUtils.doPostRequest(url, params.toJSONString());
+            if (!StringUtils.isBlank(result)) {
+                JSONObject resJson = JSON.parseObject(result);
+                int code = resJson.getIntValue("code");
+                if (code == 200) {
+                    String data = resJson.getString("data");
+                    alipayAppPayParamsResponse.setStatus(ResponseCode.SUCCESS.code);
+                    alipayAppPayParamsResponse.setData(data);
+                    return alipayAppPayParamsResponse;
+                } else if (code == 301) {
+                    //如果服务端返回失效,则强制重新获取
+                    getAccessToken(appid, appsecret, true);
+                } else {
+                    String msg = resJson.getString("msg");
+                    alipayAppPayParamsResponse.setStatus(ResponseCode.FAILED.code);
+                    alipayAppPayParamsResponse.setMsg(msg);
+                    return alipayAppPayParamsResponse;
+                }
+            } else {
+                alipayAppPayParamsResponse.setStatus(ResponseCode.FAILED.code);
+                alipayAppPayParamsResponse.setMsg("接口无响应");
+                return alipayAppPayParamsResponse;
+            }
         }
         return alipayAppPayParamsResponse;
     }
@@ -219,47 +219,47 @@ public class QmPayClient {
      * 获取微信App支付参数
      */
     public CommonResponse getWxAppPayParams(String orderNo) {
-        return getWxAppPayParams(orderNo, true);
-    }
-
-    private CommonResponse getWxAppPayParams(String orderNo, boolean isRetry) {
         CommonResponse wxAppPayParamsResponse = new CommonResponse();
-        GetAccessTokenResponse getAccessTokenResponse = getAccessToken(appid, appsecret, false);
-        int getAccessTokenResponseStatus = getAccessTokenResponse.getStatus();
-        if (getAccessTokenResponseStatus == ResponseCode.FAILED.code) {
-            wxAppPayParamsResponse.setStatus(ResponseCode.FAILED.code);
-            wxAppPayParamsResponse.setMsg(getAccessTokenResponse.getMsg());
-            return wxAppPayParamsResponse;
-        }
-        String accessToken = getAccessTokenResponse.getAccessToken();
-        JSONObject params = new JSONObject();
-        params.put("orderNo", orderNo);
-        String url = String.format(QmPayUrls.WX_APP_PAY_URL, accessToken);
-        String result = HttpUtils.postRequest(url, params.toJSONString());
-        if (!StringUtils.isBlank(result)) {
-            JSONObject resJson = JSON.parseObject(result);
-            int code = resJson.getIntValue("code");
-            if (code == 200) {
-                String data = resJson.getString("data");
-                wxAppPayParamsResponse.setStatus(ResponseCode.SUCCESS.code);
-                wxAppPayParamsResponse.setData(data);
-                return wxAppPayParamsResponse;
-            } else if (code == 301) {
-                //如果服务端返回失效,则强制重新获取
-                getAccessToken(appid, appsecret, true);
-                if (isRetry) {
-                    //重试后不再重试
-                    return getWxAppPayParams(orderNo, false);
-                }
-            } else {
-                String msg = resJson.getString("msg");
+
+        int EXEC_COUNT = 0;
+        int MAX_COUNT = 2;
+        while (EXEC_COUNT < MAX_COUNT) {
+            EXEC_COUNT++;
+
+            GetAccessTokenResponse getAccessTokenResponse = getAccessToken(appid, appsecret, false);
+            int getAccessTokenResponseStatus = getAccessTokenResponse.getStatus();
+            if (getAccessTokenResponseStatus == ResponseCode.FAILED.code) {
                 wxAppPayParamsResponse.setStatus(ResponseCode.FAILED.code);
-                wxAppPayParamsResponse.setMsg(msg);
+                wxAppPayParamsResponse.setMsg(getAccessTokenResponse.getMsg());
                 return wxAppPayParamsResponse;
             }
-        } else {
-            wxAppPayParamsResponse.setStatus(ResponseCode.FAILED.code);
-            wxAppPayParamsResponse.setMsg("接口无响应");
+            String accessToken = getAccessTokenResponse.getAccessToken();
+            JSONObject params = new JSONObject();
+            params.put("orderNo", orderNo);
+            String url = String.format(QmPayUrls.WX_APP_PAY_URL, accessToken);
+            String result = HttpUtils.doPostRequest(url, params.toJSONString());
+            if (!StringUtils.isBlank(result)) {
+                JSONObject resJson = JSON.parseObject(result);
+                int code = resJson.getIntValue("code");
+                if (code == 200) {
+                    String data = resJson.getString("data");
+                    wxAppPayParamsResponse.setStatus(ResponseCode.SUCCESS.code);
+                    wxAppPayParamsResponse.setData(data);
+                    return wxAppPayParamsResponse;
+                } else if (code == 301) {
+                    //如果服务端返回失效,则强制重新获取
+                    getAccessToken(appid, appsecret, true);
+                } else {
+                    String msg = resJson.getString("msg");
+                    wxAppPayParamsResponse.setStatus(ResponseCode.FAILED.code);
+                    wxAppPayParamsResponse.setMsg(msg);
+                    return wxAppPayParamsResponse;
+                }
+            } else {
+                wxAppPayParamsResponse.setStatus(ResponseCode.FAILED.code);
+                wxAppPayParamsResponse.setMsg("接口无响应");
+                return wxAppPayParamsResponse;
+            }
         }
         return wxAppPayParamsResponse;
     }

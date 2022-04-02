@@ -58,15 +58,15 @@ public final class QmMailClient {
         JSONObject params = new JSONObject();
         params.put("appid", appid);
         params.put("appsecret", appsecret);
-        String result = HttpUtils.postRequest(QmMailUrls.GET_ACCESS_TOKEN, params.toJSONString());
+        String result = HttpUtils.doPostRequest(QmMailUrls.GET_ACCESS_TOKEN, params.toJSONString());
         log.info("GET_ACCESS_TOKEN result:" + result);
         if (result != null) {//重试一次
             JSONObject resJson = JSON.parseObject(result);
             int code = resJson.getIntValue("code");
             if (code == 200) {
-                String access_token = resJson.getString("access_token");
-                //单位为秒
-                int expiresIn = resJson.getIntValue("expiresIn");
+                JSONObject dataJson = resJson.getJSONObject("data");
+                String access_token = dataJson.getString("access_token");
+                int expiresIn = dataJson.getIntValue("expiresIn");
                 AccessTokenCache accessTokenCache = new AccessTokenCache();
                 accessTokenCache.setAccessToken(access_token);
                 //提前 5 秒获取新accessToken
@@ -99,51 +99,51 @@ public final class QmMailClient {
      * @return
      */
     public SendResponse send(String sendMail, String receiveEmail, String subject, String content) {
-        return realSend(sendMail, receiveEmail, subject, content, true);
-    }
-
-    private SendResponse realSend(String sendMail, String receiveEmail, String subject, String content, boolean isRetry) {
         SendResponse emailResponse = new SendResponse();
-        GetAccessTokenResponse getAccessTokenResponse = getAccessToken(appid, appsecret, false);
-        int getAccessTokenResponseStatus = getAccessTokenResponse.getStatus();
-        if (getAccessTokenResponseStatus == ResponseCode.FAILED.code) {
-            emailResponse.setStatus(ResponseCode.FAILED.code);
-            emailResponse.setMsg(getAccessTokenResponse.getMsg());
-            return emailResponse;
-        }
-        String accessToken = getAccessTokenResponse.getAccessToken();
-        JSONObject params = new JSONObject();
-        if (!StringUtils.isBlank(sendMail)) {
-            params.put("sendMail", sendMail);
-        }
-        params.put("receiveMail", receiveEmail);
-        params.put("subject", subject);
-        params.put("content", content);
-        String url = String.format(QmMailUrls.SEND_EMAIL, accessToken);
-        String result = HttpUtils.postRequest(url, params.toJSONString());
-        log.info("send email result:" + result);
-        if (!StringUtils.isBlank(result)) {
-            JSONObject resJson = JSON.parseObject(result);
-            int code = resJson.getIntValue("code");
-            String msg = resJson.getString("msg");
-            if (code == 200) {
-                emailResponse.setStatus(ResponseCode.SUCCESS.code);
-                emailResponse.setMsg(msg);
-                return emailResponse;
-            } else if (code == 301) {
-                //如果服务端返回失效,则强制重新获取
-                getAccessToken(appid, appsecret, true);
-                if (isRetry) {
-                    //重试后不再重试
-                    realSend(sendMail, receiveEmail, subject, content, false);
-                }
-            } else {
+
+        int EXEC_COUNT = 0;
+        int MAX_COUNT = 2;
+        while (EXEC_COUNT < MAX_COUNT) {
+            EXEC_COUNT++;
+
+            GetAccessTokenResponse getAccessTokenResponse = getAccessToken(appid, appsecret, false);
+            int getAccessTokenResponseStatus = getAccessTokenResponse.getStatus();
+            if (getAccessTokenResponseStatus == ResponseCode.FAILED.code) {
                 emailResponse.setStatus(ResponseCode.FAILED.code);
-                emailResponse.setMsg(msg);
+                emailResponse.setMsg(getAccessTokenResponse.getMsg());
                 return emailResponse;
             }
-        } else {
-            emailResponse.setMsg("接口无响应");
+            String accessToken = getAccessTokenResponse.getAccessToken();
+            JSONObject params = new JSONObject();
+            if (!StringUtils.isBlank(sendMail)) {
+                params.put("sendMail", sendMail);
+            }
+            params.put("receiveMail", receiveEmail);
+            params.put("subject", subject);
+            params.put("content", content);
+            String url = String.format(QmMailUrls.SEND_EMAIL, accessToken);
+            String result = HttpUtils.doPostRequest(url, params.toJSONString());
+            log.info("send email result:" + result);
+            if (!StringUtils.isBlank(result)) {
+                JSONObject resJson = JSON.parseObject(result);
+                int code = resJson.getIntValue("code");
+                String msg = resJson.getString("msg");
+                if (code == 200) {
+                    emailResponse.setStatus(ResponseCode.SUCCESS.code);
+                    emailResponse.setMsg(msg);
+                    return emailResponse;
+                } else if (code == 301) {
+                    //如果服务端返回失效,则强制重新获取
+                    getAccessToken(appid, appsecret, true);
+                } else {
+                    emailResponse.setStatus(ResponseCode.FAILED.code);
+                    emailResponse.setMsg(msg);
+                    return emailResponse;
+                }
+            } else {
+                emailResponse.setMsg("接口无响应");
+                return emailResponse;
+            }
         }
         return emailResponse;
     }
@@ -154,50 +154,50 @@ public final class QmMailClient {
      * @return
      */
     public SendResponse tplSend(String appid, String appsecret, String tplId, String sendMail, String receiveEmail, String var) {
-        return tplSend(appid, appsecret, tplId, sendMail, receiveEmail, var, true);
-    }
-
-    private SendResponse tplSend(String appid, String appsecret, String tplId, String sendMail, String receiveEmail, String var, boolean isRetry) {
         SendResponse emailResponse = new SendResponse();
-        GetAccessTokenResponse getAccessTokenResponse = getAccessToken(appid, appsecret, false);
-        int getAccessTokenResponseStatus = getAccessTokenResponse.getStatus();
-        if (getAccessTokenResponseStatus == ResponseCode.FAILED.code) {
-            emailResponse.setStatus(ResponseCode.FAILED.code);
-            emailResponse.setMsg(getAccessTokenResponse.getMsg());
-            return emailResponse;
-        }
-        String accessToken = getAccessTokenResponse.getAccessToken();
-        JSONObject params = new JSONObject();
-        params.put("tplId", tplId);
-        if (!StringUtils.isBlank(sendMail)) {
-            params.put("sendMail", sendMail);
-        }
-        params.put("receiveMail", receiveEmail);
-        params.put("var", var);
-        String url = String.format(QmMailUrls.SEND_TPL_EMAIL, accessToken);
-        String result = HttpUtils.postRequest(url, params.toJSONString());
-        if (!StringUtils.isBlank(result)) {
-            JSONObject resJson = JSON.parseObject(result);
-            int code = resJson.getIntValue("code");
-            String msg = resJson.getString("msg");
-            if (code == 200) {
-                emailResponse.setStatus(ResponseCode.SUCCESS.code);
-                emailResponse.setMsg(msg);
-                return emailResponse;
-            } else if (code == 301) {
-                //如果服务端返回失效则强制重新获取
-                getAccessToken(appid, appsecret, true);
-                if (isRetry) {
-                    //重试后不再重试
-                    tplSend(appid, appsecret, tplId, sendMail, receiveEmail, var, false);
-                }
-            } else {
+
+        int EXEC_COUNT = 0;
+        int MAX_COUNT = 2;
+        while (EXEC_COUNT < MAX_COUNT) {
+            EXEC_COUNT++;
+
+            GetAccessTokenResponse getAccessTokenResponse = getAccessToken(appid, appsecret, false);
+            int getAccessTokenResponseStatus = getAccessTokenResponse.getStatus();
+            if (getAccessTokenResponseStatus == ResponseCode.FAILED.code) {
                 emailResponse.setStatus(ResponseCode.FAILED.code);
-                emailResponse.setMsg(msg);
+                emailResponse.setMsg(getAccessTokenResponse.getMsg());
                 return emailResponse;
             }
-        } else {
-            emailResponse.setMsg("接口无响应");
+            String accessToken = getAccessTokenResponse.getAccessToken();
+            JSONObject params = new JSONObject();
+            params.put("tplId", tplId);
+            if (!StringUtils.isBlank(sendMail)) {
+                params.put("sendMail", sendMail);
+            }
+            params.put("receiveMail", receiveEmail);
+            params.put("var", var);
+            String url = String.format(QmMailUrls.SEND_TPL_EMAIL, accessToken);
+            String result = HttpUtils.doPostRequest(url, params.toJSONString());
+            if (!StringUtils.isBlank(result)) {
+                JSONObject resJson = JSON.parseObject(result);
+                int code = resJson.getIntValue("code");
+                String msg = resJson.getString("msg");
+                if (code == 200) {
+                    emailResponse.setStatus(ResponseCode.SUCCESS.code);
+                    emailResponse.setMsg(msg);
+                    return emailResponse;
+                } else if (code == 301) {
+                    //如果服务端返回失效则强制重新获取
+                    getAccessToken(appid, appsecret, true);
+                } else {
+                    emailResponse.setStatus(ResponseCode.FAILED.code);
+                    emailResponse.setMsg(msg);
+                    return emailResponse;
+                }
+            } else {
+                emailResponse.setMsg("接口无响应");
+                return emailResponse;
+            }
         }
         return emailResponse;
     }

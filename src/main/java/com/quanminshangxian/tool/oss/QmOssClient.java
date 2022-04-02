@@ -60,7 +60,7 @@ public class QmOssClient {
         JSONObject params = new JSONObject();
         params.put("appid", appid);
         params.put("appsecret", appsecret);
-        String result = HttpUtils.postRequest(QmOssUrls.GET_ACCESS_TOKEN, params.toJSONString());
+        String result = HttpUtils.doPostRequest(QmOssUrls.GET_ACCESS_TOKEN, params.toJSONString());
         log.info("GET_ACCESS_TOKEN result:" + result);
         if (result != null) {//重试一次
             JSONObject resJson = JSON.parseObject(result);
@@ -102,69 +102,67 @@ public class QmOssClient {
      * @return
      */
     public QmOssUploadResponse uploadBase64(QmOssBase64RequestParam qmOssBase64RequestParam) {
+        QmOssUploadResponse ossResponse = new QmOssUploadResponse();
         String base64 = qmOssBase64RequestParam.getBase64();
         if (base64.length() > 1024 * 1024 * 5) {
-            QmOssUploadResponse ossResponse = new QmOssUploadResponse();
             ossResponse.setStatus(0);
             ossResponse.setMsg("base64方式上传文件不能大于5M");
             return ossResponse;
         }
-        return realUploadBase64(qmOssBase64RequestParam, true);
-    }
+        int EXEC_COUNT = 0;
+        int MAX_COUNT = 2;
+        while (EXEC_COUNT < MAX_COUNT) {
+            EXEC_COUNT++;
 
-    private QmOssUploadResponse realUploadBase64(QmOssBase64RequestParam qmOssBase64RequestParam, boolean isRetry) {
-        QmOssUploadResponse ossResponse = new QmOssUploadResponse();
-        GetAccessTokenResponse getAccessTokenResponse = getAccessToken(appid, appsecret, false);
-        int getAccessTokenResponseStatus = getAccessTokenResponse.getStatus();
-        if (getAccessTokenResponseStatus == ResponseCode.FAILED.code) {
-            ossResponse.setStatus(ResponseCode.FAILED.code);
-            ossResponse.setMsg(getAccessTokenResponse.getMsg());
-            return ossResponse;
-        }
-        String accessToken = getAccessTokenResponse.getAccessToken();
-        JSONObject params = new JSONObject();
-        params.put("accessAuth", qmOssBase64RequestParam.getAccessAuth());
-        params.put("parentId", qmOssBase64RequestParam.getParentId());
-        params.put("name", qmOssBase64RequestParam.getOssName());
-        params.put("data", qmOssBase64RequestParam.getBase64());
-        String uploadUrl = String.format(QmOssUrls.UPLOAD_BASE64, accessToken);
-        String result = HttpUtils.postRequest(uploadUrl, params.toJSONString());
-        log.info("uploadBase64 result:" + result);
-        if (!StringUtils.isBlank(result)) {
-            JSONObject resJson = JSON.parseObject(result);
-            int code = resJson.getIntValue("code");
-            String msg = resJson.getString("msg");
-            if (code == 200) {
-                JSONObject dataJson = resJson.getJSONObject("data");
-                String ossId = dataJson.getString("ossId");
-                String url = dataJson.getString("url");
-                Integer width = dataJson.getInteger("width");
-                Integer height = dataJson.getInteger("height");
-                Integer times = dataJson.getInteger("times");
-                ossResponse.setStatus(ResponseCode.SUCCESS.code);
-                ossResponse.setMsg("success");
-                QmOssResponseData ossResponseData = new QmOssResponseData();
-                ossResponseData.setOssId(ossId);
-                ossResponseData.setUrl(url);
-                ossResponseData.setWidth(width);
-                ossResponseData.setHeight(height);
-                ossResponseData.setTimes(times);
-                ossResponse.setData(ossResponseData);
-                return ossResponse;
-            } else if (code == 301) {
-                //如果服务端返回失效,则强制重新获取
-                getAccessToken(appid, appsecret, true);
-                if (isRetry) {
-                    //重试后不再重试
-                    realUploadBase64(qmOssBase64RequestParam, false);
-                }
-            } else {
+            GetAccessTokenResponse getAccessTokenResponse = getAccessToken(appid, appsecret, false);
+            int getAccessTokenResponseStatus = getAccessTokenResponse.getStatus();
+            if (getAccessTokenResponseStatus == ResponseCode.FAILED.code) {
                 ossResponse.setStatus(ResponseCode.FAILED.code);
-                ossResponse.setMsg(msg);
+                ossResponse.setMsg(getAccessTokenResponse.getMsg());
                 return ossResponse;
             }
-        } else {
-            ossResponse.setMsg("接口无响应");
+            String accessToken = getAccessTokenResponse.getAccessToken();
+            JSONObject params = new JSONObject();
+            params.put("accessAuth", qmOssBase64RequestParam.getAccessAuth());
+            params.put("parentId", qmOssBase64RequestParam.getParentId());
+            params.put("name", qmOssBase64RequestParam.getOssName());
+            params.put("data", qmOssBase64RequestParam.getBase64());
+            String uploadUrl = String.format(QmOssUrls.UPLOAD_BASE64, accessToken);
+            String result = HttpUtils.doPostRequest(uploadUrl, params.toJSONString());
+            log.info("uploadBase64 result:" + result);
+            if (!StringUtils.isBlank(result)) {
+                JSONObject resJson = JSON.parseObject(result);
+                int code = resJson.getIntValue("code");
+                String msg = resJson.getString("msg");
+                if (code == 200) {
+                    JSONObject dataJson = resJson.getJSONObject("data");
+                    String ossId = dataJson.getString("ossId");
+                    String url = dataJson.getString("url");
+                    Integer width = dataJson.getInteger("width");
+                    Integer height = dataJson.getInteger("height");
+                    Integer times = dataJson.getInteger("times");
+                    ossResponse.setStatus(ResponseCode.SUCCESS.code);
+                    ossResponse.setMsg("success");
+                    QmOssResponseData ossResponseData = new QmOssResponseData();
+                    ossResponseData.setOssId(ossId);
+                    ossResponseData.setUrl(url);
+                    ossResponseData.setWidth(width);
+                    ossResponseData.setHeight(height);
+                    ossResponseData.setTimes(times);
+                    ossResponse.setData(ossResponseData);
+                    return ossResponse;
+                } else if (code == 301) {
+                    //如果服务端返回失效,则强制重新获取
+                    getAccessToken(appid, appsecret, true);
+                } else {
+                    ossResponse.setStatus(ResponseCode.FAILED.code);
+                    ossResponse.setMsg(msg);
+                    return ossResponse;
+                }
+            } else {
+                ossResponse.setMsg("接口无响应");
+                return ossResponse;
+            }
         }
         return ossResponse;
     }
@@ -175,11 +173,11 @@ public class QmOssClient {
      * @return
      */
     public QmOssUploadResponse uploadMultipart(QmOssFileRequestParam qmOssFileRequestParam) {
+        QmOssUploadResponse ossResponse = new QmOssUploadResponse();
         String filePath = qmOssFileRequestParam.getFilePath();
         String parentId = qmOssFileRequestParam.getParentId();
         File tmpFile = new File(filePath);
         if (!tmpFile.exists()) {
-            QmOssUploadResponse ossResponse = new QmOssUploadResponse();
             ossResponse.setStatus(0);
             ossResponse.setMsg("file not exist");
             return ossResponse;
@@ -189,63 +187,59 @@ public class QmOssClient {
         if (fileSize > 1024 * 1024 * 5) {
             return uploadChunk(qmOssFileRequestParam);
         }
-        return realUploadMultipart(qmOssFileRequestParam, true);
-    }
+        int EXEC_COUNT = 0;
+        int MAX_COUNT = 2;
+        while (EXEC_COUNT < MAX_COUNT) {
+            EXEC_COUNT++;
 
-    private QmOssUploadResponse realUploadMultipart(QmOssFileRequestParam qmOssFileRequestParam, boolean isRetry) {
-        String filePath = qmOssFileRequestParam.getFilePath();
-        String parentId = qmOssFileRequestParam.getParentId();
-        filePath = filePath.replaceAll("\\\\", "/");
-        QmOssUploadResponse ossResponse = new QmOssUploadResponse();
-        GetAccessTokenResponse getAccessTokenResponse = getAccessToken(appid, appsecret, false);
-        int getAccessTokenResponseStatus = getAccessTokenResponse.getStatus();
-        if (getAccessTokenResponseStatus == ResponseCode.FAILED.code) {
-            ossResponse.setStatus(ResponseCode.FAILED.code);
-            ossResponse.setMsg(getAccessTokenResponse.getMsg());
-            return ossResponse;
-        }
-        String accessToken = getAccessTokenResponse.getAccessToken();
-        String uploadUrl = String.format(QmOssUrls.UPLOAD_MULTIPART, accessToken);
-        Map<String, String> params = new HashMap<>();
-        params.put("accessAuth", qmOssFileRequestParam.getAccessAuth());
-        params.put("parentId", parentId);
-        String result = HttpUtils.multiFormDataUpload(uploadUrl, filePath, params);
-        log.info("uploadMultipart result:" + result);
-        if (!StringUtils.isBlank(result)) {
-            JSONObject resJson = JSON.parseObject(result);
-            int code = resJson.getIntValue("code");
-            String msg = resJson.getString("msg");
-            if (code == 200) {
-                JSONObject dataJson = resJson.getJSONObject("data");
-                String ossId = dataJson.getString("ossId");
-                String url = dataJson.getString("url");
-                Integer width = dataJson.getInteger("width");
-                Integer height = dataJson.getInteger("height");
-                Integer times = dataJson.getInteger("times");
-                ossResponse.setStatus(ResponseCode.SUCCESS.code);
-                ossResponse.setMsg("success");
-                QmOssResponseData ossResponseData = new QmOssResponseData();
-                ossResponseData.setOssId(ossId);
-                ossResponseData.setUrl(url);
-                ossResponseData.setWidth(width);
-                ossResponseData.setHeight(height);
-                ossResponseData.setTimes(times);
-                ossResponse.setData(ossResponseData);
-                return ossResponse;
-            } else if (code == 301) {
-                //如果服务端返回失效,则强制重新获取
-                getAccessToken(appid, appsecret, true);
-                if (isRetry) {
-                    //重试后不再重试
-                    realUploadMultipart(qmOssFileRequestParam, false);
-                }
-            } else {
+            filePath = filePath.replaceAll("\\\\", "/");
+            GetAccessTokenResponse getAccessTokenResponse = getAccessToken(appid, appsecret, false);
+            int getAccessTokenResponseStatus = getAccessTokenResponse.getStatus();
+            if (getAccessTokenResponseStatus == ResponseCode.FAILED.code) {
                 ossResponse.setStatus(ResponseCode.FAILED.code);
-                ossResponse.setMsg(msg);
+                ossResponse.setMsg(getAccessTokenResponse.getMsg());
                 return ossResponse;
             }
-        } else {
-            ossResponse.setMsg("接口无响应");
+            String accessToken = getAccessTokenResponse.getAccessToken();
+            String uploadUrl = String.format(QmOssUrls.UPLOAD_MULTIPART, accessToken);
+            Map<String, String> params = new HashMap<>();
+            params.put("accessAuth", qmOssFileRequestParam.getAccessAuth());
+            params.put("parentId", parentId);
+            String result = HttpUtils.multiFormDataUpload(uploadUrl, filePath, params);
+            log.info("uploadMultipart result:" + result);
+            if (!StringUtils.isBlank(result)) {
+                JSONObject resJson = JSON.parseObject(result);
+                int code = resJson.getIntValue("code");
+                String msg = resJson.getString("msg");
+                if (code == 200) {
+                    JSONObject dataJson = resJson.getJSONObject("data");
+                    String ossId = dataJson.getString("ossId");
+                    String url = dataJson.getString("url");
+                    Integer width = dataJson.getInteger("width");
+                    Integer height = dataJson.getInteger("height");
+                    Integer times = dataJson.getInteger("times");
+                    ossResponse.setStatus(ResponseCode.SUCCESS.code);
+                    ossResponse.setMsg("success");
+                    QmOssResponseData ossResponseData = new QmOssResponseData();
+                    ossResponseData.setOssId(ossId);
+                    ossResponseData.setUrl(url);
+                    ossResponseData.setWidth(width);
+                    ossResponseData.setHeight(height);
+                    ossResponseData.setTimes(times);
+                    ossResponse.setData(ossResponseData);
+                    return ossResponse;
+                } else if (code == 301) {
+                    //如果服务端返回失效,则强制重新获取
+                    getAccessToken(appid, appsecret, true);
+                } else {
+                    ossResponse.setStatus(ResponseCode.FAILED.code);
+                    ossResponse.setMsg(msg);
+                    return ossResponse;
+                }
+            } else {
+                ossResponse.setMsg("接口无响应");
+                return ossResponse;
+            }
         }
         return ossResponse;
     }
@@ -393,7 +387,7 @@ public class QmOssClient {
         JSONObject params = new JSONObject();
         params.put("ossId", ossId);
         params.put("expireIn", String.valueOf(expireIn));
-        String result = HttpUtils.postRequest(getNetUrl, params.toJSONString());
+        String result = HttpUtils.doPostRequest(getNetUrl, params.toJSONString());
         log.info("getOssNetUrl result:" + result);
         if (!StringUtils.isBlank(result)) {
             JSONObject resJson = JSON.parseObject(result);
@@ -445,7 +439,7 @@ public class QmOssClient {
         JSONObject params = new JSONObject();
         params.put("ossId", ossId);
         params.put("ossName", ossName);
-        String result = HttpUtils.postRequest(renameUrl, params.toJSONString());
+        String result = HttpUtils.doPostRequest(renameUrl, params.toJSONString());
         log.info("rename result:" + result);
         if (!StringUtils.isBlank(result)) {
             JSONObject resJson = JSON.parseObject(result);
@@ -493,7 +487,7 @@ public class QmOssClient {
         String deleteUrl = String.format(QmOssUrls.DELETE_URL, accessToken);
         JSONObject params = new JSONObject();
         params.put("ossId", ossId);
-        String result = HttpUtils.postRequest(deleteUrl, params.toJSONString());
+        String result = HttpUtils.doPostRequest(deleteUrl, params.toJSONString());
         log.info("delete result:" + result);
         if (!StringUtils.isBlank(result)) {
             JSONObject resJson = JSON.parseObject(result);

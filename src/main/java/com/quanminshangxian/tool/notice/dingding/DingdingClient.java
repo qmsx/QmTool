@@ -63,7 +63,7 @@ public class DingdingClient {
             return dingdingResponse;
         }
         String url = String.format(WEB_URL, accessToken, timestamp, sign);
-        String result = HttpUtils.postRequestForJson(url, msg.toJSONString());
+        String result = HttpUtils.doPostRequestForJson(url, msg.toJSONString());
         if (StringUtils.isBlank(result)) {
             dingdingResponse.setMsg("接口无响应");
             return dingdingResponse;
@@ -109,7 +109,7 @@ public class DingdingClient {
             return dingdingResponse;
         }
         String url = String.format(WEB_URL, accessToken, timestamp, sign);
-        String result = HttpUtils.postRequestForJson(url, msg.toJSONString());
+        String result = HttpUtils.doPostRequestForJson(url, msg.toJSONString());
         if (StringUtils.isBlank(result)) {
             dingdingResponse.setMsg("接口无响应");
             return dingdingResponse;

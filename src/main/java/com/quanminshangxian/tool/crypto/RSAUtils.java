@@ -1,5 +1,9 @@
 package com.quanminshangxian.tool.crypto;
 
+import com.quanminshangxian.tool.form.QmFormClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.crypto.Cipher;
 import java.security.*;
 import java.security.interfaces.RSAPrivateKey;
@@ -11,6 +15,7 @@ import java.security.interfaces.RSAPublicKey;
  * 非对称加密算法的典型代表，既能加密、又能解密。和对称加密算法比如DES的明显区别在于用于加密、解密的密钥是不同的。使用RSA算法，只要密钥足够长(一般要求1024bit)，加密的信息是不能被破解的。
  */
 public class RSAUtils {
+    private static final Logger log = LoggerFactory.getLogger(RSAUtils.class);
 
     private static final String ALGORITHM_RSA = "rsa";
     private static final String ALGORITHM_MD5_RSA = "MD5withRSA";
@@ -136,8 +141,8 @@ public class RSAUtils {
         // 得到私钥字符串
         String privateKeyString = new String(Base64Utils.encode(new String(privateKey.getEncoded())));
         // 将公钥和私钥保存到Map
-        System.out.println("publicKey:" + publicKeyString);
-        System.out.println("privateKey:" + privateKeyString);
+        log.info("publicKey:" + publicKeyString);
+        log.info("privateKey:" + privateKeyString);
         return new String[]{
                 publicKeyString,
                 privateKeyString

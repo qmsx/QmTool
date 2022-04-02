@@ -4,6 +4,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 
 import java.io.*;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
