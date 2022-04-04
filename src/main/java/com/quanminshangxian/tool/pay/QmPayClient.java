@@ -7,7 +7,7 @@ import com.quanminshangxian.tool.common.StringUtils;
 import com.quanminshangxian.tool.http.HttpUtils;
 import com.quanminshangxian.tool.model.AccessTokenCache;
 import com.quanminshangxian.tool.model.CreateOrderResponse;
-import com.quanminshangxian.tool.model.CommonResponse;
+import com.quanminshangxian.tool.model.SendResponse;
 import com.quanminshangxian.tool.model.GetAccessTokenResponse;
 
 import java.util.Map;
@@ -155,8 +155,8 @@ public class QmPayClient {
     /**
      * 获取支付宝App支付参数
      */
-    public CommonResponse getAlipayAppPayParams(String orderNo) {
-        CommonResponse alipayAppPayParamsResponse = new CommonResponse();
+    public SendResponse getAlipayAppPayParams(String orderNo) {
+        SendResponse alipayAppPayParamsResponse = new SendResponse();
 
         int EXEC_COUNT = 0;
         int MAX_COUNT = 2;
@@ -218,8 +218,8 @@ public class QmPayClient {
     /**
      * 获取微信App支付参数
      */
-    public CommonResponse getWxAppPayParams(String orderNo) {
-        CommonResponse wxAppPayParamsResponse = new CommonResponse();
+    public SendResponse getWxAppPayParams(String orderNo) {
+        SendResponse wxAppPayParamsResponse = new SendResponse();
 
         int EXEC_COUNT = 0;
         int MAX_COUNT = 2;

@@ -2,7 +2,7 @@ package com.quanminshangxian.tool.code;
 
 public enum ResponseCode {
 
-    SUCCESS(1, "success"),
+    SUCCESS(200, "success"),
     FAILED(0, "failed");
 
     public int code;

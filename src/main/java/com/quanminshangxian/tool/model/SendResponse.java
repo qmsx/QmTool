@@ -1,11 +1,10 @@
 package com.quanminshangxian.tool.model;
 
-import java.io.Serializable;
+public class SendResponse {
 
-public class SendResponse implements Serializable {
-
-    // 0-失败 1-成功
+    // 1：成功 0：失败
     private int status = 0;
+    private String data;
     private String msg = "unknown error";
 
     public int getStatus() {
@@ -16,6 +15,14 @@ public class SendResponse implements Serializable {
         this.status = status;
     }
 
+    public String getData() {
+        return data;
+    }
+
+    public void setData(String data) {
+        this.data = data;
+    }
+
     public String getMsg() {
         return msg;
     }
@@ -23,4 +30,5 @@ public class SendResponse implements Serializable {
     public void setMsg(String msg) {
         this.msg = msg;
     }
+
 }

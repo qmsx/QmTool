@@ -6,9 +6,8 @@ import com.quanminshangxian.tool.code.ResponseCode;
 import com.quanminshangxian.tool.common.StringUtils;
 import com.quanminshangxian.tool.http.HttpUtils;
 import com.quanminshangxian.tool.model.AccessTokenCache;
-import com.quanminshangxian.tool.model.GetAccessTokenResponse;
 import com.quanminshangxian.tool.model.SendResponse;
-import com.quanminshangxian.tool.oss.QmOssClient;
+import com.quanminshangxian.tool.model.GetAccessTokenResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,7 +96,7 @@ public class QmSmsClient {
      * @return
      */
     public SendResponse send(String tplId, String mobile, String var) {
-        SendResponse smsResponse = new SendResponse();
+        SendResponse sendResponse = new SendResponse();
 
         int EXEC_COUNT = 0;
         int MAX_COUNT = 2;
@@ -107,9 +106,9 @@ public class QmSmsClient {
             GetAccessTokenResponse getAccessTokenResponse = getAccessToken(appid, appsecret, false);
             int getAccessTokenResponseStatus = getAccessTokenResponse.getStatus();
             if (getAccessTokenResponseStatus == ResponseCode.FAILED.code) {
-                smsResponse.setStatus(ResponseCode.FAILED.code);
-                smsResponse.setMsg(getAccessTokenResponse.getMsg());
-                return smsResponse;
+                sendResponse.setStatus(ResponseCode.FAILED.code);
+                sendResponse.setMsg(getAccessTokenResponse.getMsg());
+                return sendResponse;
             }
             String accessToken = getAccessTokenResponse.getAccessToken();
             JSONObject params = new JSONObject();
@@ -123,23 +122,23 @@ public class QmSmsClient {
                 int code = resJson.getIntValue("code");
                 String msg = resJson.getString("msg");
                 if (code == 200) {
-                    smsResponse.setStatus(ResponseCode.SUCCESS.code);
-                    smsResponse.setMsg(msg);
-                    return smsResponse;
+                    sendResponse.setStatus(ResponseCode.SUCCESS.code);
+                    sendResponse.setMsg(msg);
+                    return sendResponse;
                 } else if (code == 301) {
                     //如果服务端返回失效,则强制重新获取
                     getAccessToken(appid, appsecret, true);
                 } else {
-                    smsResponse.setStatus(ResponseCode.FAILED.code);
-                    smsResponse.setMsg(msg);
-                    return smsResponse;
+                    sendResponse.setStatus(ResponseCode.FAILED.code);
+                    sendResponse.setMsg(msg);
+                    return sendResponse;
                 }
             } else {
-                smsResponse.setMsg("接口无响应");
-                return smsResponse;
+                sendResponse.setMsg("接口无响应");
+                return sendResponse;
             }
         }
-        return smsResponse;
+        return sendResponse;
     }
 
 }

@@ -20,6 +20,10 @@ public final class QmFormUrls {
      */
     static String FORM_IMP_EXCEL = API_BASE_URL + "form/impExcel?access_token=%s";
     /**
+     * 获取文本文件导出路径
+     */
+    static String FORM_GET_TEXT_EXPORT_URL = API_BASE_URL + "form/getTextExportUrl?access_token=%s";
+    /**
      * 获取excel文件导出路径
      */
     static String FORM_GET_EXCEL_EXPORT_URL = API_BASE_URL + "form/getExcelExportUrl?access_token=%s";

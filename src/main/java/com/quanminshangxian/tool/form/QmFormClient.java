@@ -4,15 +4,16 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.quanminshangxian.tool.code.ResponseCode;
 import com.quanminshangxian.tool.common.StringUtils;
+import com.quanminshangxian.tool.form.request.QmFormImpExcelRequestParam;
+import com.quanminshangxian.tool.form.request.QmFormImpTextRequestParam;
 import com.quanminshangxian.tool.http.HttpUtils;
 import com.quanminshangxian.tool.model.AccessTokenCache;
-import com.quanminshangxian.tool.model.CommonResponse;
-import com.quanminshangxian.tool.model.CreateOrderResponse;
+import com.quanminshangxian.tool.model.SendResponse;
 import com.quanminshangxian.tool.model.GetAccessTokenResponse;
-import com.quanminshangxian.tool.sms.QmSmsClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -101,8 +102,8 @@ public class QmFormClient {
      *
      * @return
      */
-    public CommonResponse addData(String formCode, String dataCombType, List<Object> fieldDataList) {
-        CommonResponse commonResponse = new CommonResponse();
+    public SendResponse addData(String formCode, String dataCombType, List<Object> fieldDataList) {
+        SendResponse sendResponse = new SendResponse();
 
         int EXEC_COUNT = 0;
         int MAX_COUNT = 2;
@@ -112,9 +113,9 @@ public class QmFormClient {
             GetAccessTokenResponse getAccessTokenResponse = getAccessToken(appid, appsecret, false);
             int getAccessTokenResponseStatus = getAccessTokenResponse.getStatus();
             if (getAccessTokenResponseStatus == ResponseCode.FAILED.code) {
-                commonResponse.setStatus(ResponseCode.FAILED.code);
-                commonResponse.setMsg(getAccessTokenResponse.getMsg());
-                return commonResponse;
+                sendResponse.setStatus(ResponseCode.FAILED.code);
+                sendResponse.setMsg(getAccessTokenResponse.getMsg());
+                return sendResponse;
             }
             String accessToken = getAccessTokenResponse.getAccessToken();
             Map<String, Object> params = new HashMap<>();
@@ -130,50 +131,165 @@ public class QmFormClient {
                 int code = resJson.getIntValue("code");
                 String msg = resJson.getString("msg");
                 if (code == 200) {
-                    commonResponse.setStatus(ResponseCode.SUCCESS.code);
-                    commonResponse.setMsg(msg);
-                    return commonResponse;
+                    sendResponse.setStatus(ResponseCode.SUCCESS.code);
+                    sendResponse.setMsg(msg);
+                    return sendResponse;
                 } else if (code == 301) {
                     //如果服务端返回失效,则强制重新获取
                     getAccessToken(appid, appsecret, true);
                 } else {
-                    commonResponse.setStatus(ResponseCode.FAILED.code);
-                    commonResponse.setMsg(msg);
-                    return commonResponse;
+                    sendResponse.setStatus(ResponseCode.FAILED.code);
+                    sendResponse.setMsg(msg);
+                    return sendResponse;
                 }
             } else {
-                commonResponse.setStatus(ResponseCode.FAILED.code);
-                commonResponse.setMsg("接口无响应");
-                return commonResponse;
+                sendResponse.setStatus(ResponseCode.FAILED.code);
+                sendResponse.setMsg("接口无响应");
+                return sendResponse;
             }
         }
-        return commonResponse;
+        return sendResponse;
     }
 
     /**
      * 导入文本数据文件
      */
-    public CommonResponse impText() {
+    public SendResponse impText(QmFormImpTextRequestParam qmFormImpTextRequestParam) {
+        SendResponse sendResponse = new SendResponse();
+        String filePath = qmFormImpTextRequestParam.getFilePath();
+        File tmpFile = new File(filePath);
+        if (!tmpFile.exists()) {
+            sendResponse.setStatus(0);
+            sendResponse.setMsg("file not exist");
+            return sendResponse;
+        }
+        long fileSize = tmpFile.length();
+        if (fileSize > 1024 * 1024 * 1024) {
+            //客户端限制大小暂定1GB
+            sendResponse.setMsg("文件不能大于1GB");
+            return sendResponse;
+        }
+        int EXEC_COUNT = 0;
+        int MAX_COUNT = 2;
+        while (EXEC_COUNT < MAX_COUNT) {
+            EXEC_COUNT++;
 
-        return null;
+            filePath = filePath.replaceAll("\\\\", "/");
+            GetAccessTokenResponse getAccessTokenResponse = getAccessToken(appid, appsecret, false);
+            int getAccessTokenResponseStatus = getAccessTokenResponse.getStatus();
+            if (getAccessTokenResponseStatus == ResponseCode.FAILED.code) {
+                sendResponse.setStatus(ResponseCode.FAILED.code);
+                sendResponse.setMsg(getAccessTokenResponse.getMsg());
+                return sendResponse;
+            }
+            String accessToken = getAccessTokenResponse.getAccessToken();
+            String uploadUrl = String.format(QmFormUrls.FORM_IMP_TEXT, accessToken);
+            Map<String, String> params = new HashMap<>();
+            params.put("formCode", qmFormImpTextRequestParam.getFormCode());
+            params.put("dataCombType", String.valueOf(qmFormImpTextRequestParam.getDataCombType()));
+            params.put("separator", qmFormImpTextRequestParam.getSeparator());
+            params.put("filePath", qmFormImpTextRequestParam.getFilePath());
+            String result = HttpUtils.multiFormDataUpload(uploadUrl, filePath, params);
+            log.info("uploadMultipart result:" + result);
+            if (!StringUtils.isBlank(result)) {
+                JSONObject resJson = JSON.parseObject(result);
+                int code = resJson.getIntValue("code");
+                String msg = resJson.getString("msg");
+                if (code == 200) {
+                    sendResponse.setStatus(ResponseCode.SUCCESS.code);
+                    sendResponse.setMsg(msg);
+                    return sendResponse;
+                } else if (code == 301) {
+                    //如果服务端返回失效,则强制重新获取
+                    getAccessToken(appid, appsecret, true);
+                } else {
+                    sendResponse.setStatus(ResponseCode.FAILED.code);
+                    sendResponse.setMsg(msg);
+                    return sendResponse;
+                }
+            } else {
+                sendResponse.setMsg("接口无响应");
+                return sendResponse;
+            }
+        }
+        return sendResponse;
     }
 
     /**
      * 导入excel数据文件
      */
-    public CommonResponse impExcel() {
+    public SendResponse impExcel(QmFormImpExcelRequestParam qmFormImpExcelRequestParam) {
+        SendResponse sendResponse = new SendResponse();
+        String filePath = qmFormImpExcelRequestParam.getFilePath();
+        File tmpFile = new File(filePath);
+        if (!tmpFile.exists()) {
+            sendResponse.setStatus(0);
+            sendResponse.setMsg("file not exist");
+            return sendResponse;
+        }
+        long fileSize = tmpFile.length();
+        if (fileSize > 1024 * 1024 * 1024) {
+            //客户端限制大小暂定1GB
+            sendResponse.setMsg("文件不能大于1GB");
+            return sendResponse;
+        }
+        int EXEC_COUNT = 0;
+        int MAX_COUNT = 2;
+        while (EXEC_COUNT < MAX_COUNT) {
+            EXEC_COUNT++;
 
-        return null;
+            filePath = filePath.replaceAll("\\\\", "/");
+            GetAccessTokenResponse getAccessTokenResponse = getAccessToken(appid, appsecret, false);
+            int getAccessTokenResponseStatus = getAccessTokenResponse.getStatus();
+            if (getAccessTokenResponseStatus == ResponseCode.FAILED.code) {
+                sendResponse.setStatus(ResponseCode.FAILED.code);
+                sendResponse.setMsg(getAccessTokenResponse.getMsg());
+                return sendResponse;
+            }
+            String accessToken = getAccessTokenResponse.getAccessToken();
+            String uploadUrl = String.format(QmFormUrls.FORM_IMP_EXCEL, accessToken);
+            Map<String, String> params = new HashMap<>();
+            params.put("formCode", qmFormImpExcelRequestParam.getFormCode());
+            params.put("dataCombType", String.valueOf(qmFormImpExcelRequestParam.getDataCombType()));
+            params.put("separator", qmFormImpExcelRequestParam.getSeparator());
+            params.put("filePath", qmFormImpExcelRequestParam.getFilePath());
+            String result = HttpUtils.multiFormDataUpload(uploadUrl, filePath, params);
+            log.info("uploadMultipart result:" + result);
+            if (!StringUtils.isBlank(result)) {
+                JSONObject resJson = JSON.parseObject(result);
+                int code = resJson.getIntValue("code");
+                String msg = resJson.getString("msg");
+                if (code == 200) {
+                    sendResponse.setStatus(ResponseCode.SUCCESS.code);
+                    sendResponse.setMsg(msg);
+                    return sendResponse;
+                } else if (code == 301) {
+                    //如果服务端返回失效,则强制重新获取
+                    getAccessToken(appid, appsecret, true);
+                } else {
+                    sendResponse.setStatus(ResponseCode.FAILED.code);
+                    sendResponse.setMsg(msg);
+                    return sendResponse;
+                }
+            } else {
+                sendResponse.setMsg("接口无响应");
+                return sendResponse;
+            }
+        }
+        return sendResponse;
     }
 
     /**
-     * 获取excel文件导出路径
+     * 获取文本文件导出路径
      *
-     * @param formCode  表单代码
-     * @param expiresIn 过期时间，单位秒
+     * @param formCode     表单代码
+     * @param expiresIn    过期时间，单位秒
+     * @param dataCombType 数据组合类型
+     * @param separator    数据分隔符
+     * @param fileName     导出文件名，为空时默认使用【 表单名称.txt 】
      */
-    public CommonResponse getExcelExportUrl(String formCode, int expiresIn) {
-        CommonResponse commonResponse = new CommonResponse();
+    public SendResponse getTextExportUrl(String formCode, int expiresIn, int dataCombType, String separator, String fileName) {
+        SendResponse sendResponse = new SendResponse();
 
         int EXEC_COUNT = 0;
         int MAX_COUNT = 2;
@@ -183,9 +299,71 @@ public class QmFormClient {
             GetAccessTokenResponse getAccessTokenResponse = getAccessToken(appid, appsecret, false);
             int getAccessTokenResponseStatus = getAccessTokenResponse.getStatus();
             if (getAccessTokenResponseStatus == ResponseCode.FAILED.code) {
-                commonResponse.setStatus(ResponseCode.FAILED.code);
-                commonResponse.setMsg(getAccessTokenResponse.getMsg());
-                return commonResponse;
+                sendResponse.setStatus(ResponseCode.FAILED.code);
+                sendResponse.setMsg(getAccessTokenResponse.getMsg());
+                return sendResponse;
+            }
+            String accessToken = getAccessTokenResponse.getAccessToken();
+            Map<String, Object> params = new HashMap<>();
+            params.put("formCode", formCode);
+            params.put("expiresIn", expiresIn);
+            params.put("dataCombType", dataCombType);
+            params.put("separator", separator);
+            if (!StringUtils.isBlank(fileName)) {
+                params.put("fileName", fileName);
+            }
+            String url = String.format(QmFormUrls.FORM_GET_TEXT_EXPORT_URL, accessToken);
+            log.info(url);
+            log.info(JSON.toJSONString(params));
+            String result = HttpUtils.doPostRequestForJson(url, JSONObject.toJSONString(params));
+            if (!StringUtils.isBlank(result)) {
+                JSONObject resJson = JSON.parseObject(result);
+                int code = resJson.getIntValue("code");
+                String msg = resJson.getString("msg");
+                if (code == 200) {
+                    JSONObject dataJson = resJson.getJSONObject("data");
+                    String excelUrl = dataJson.getString("url");
+                    sendResponse.setStatus(ResponseCode.SUCCESS.code);
+                    sendResponse.setMsg(msg);
+                    sendResponse.setData(excelUrl);
+                    return sendResponse;
+                } else if (code == 301) {
+                    //如果服务端返回失效,则强制重新获取
+                    getAccessToken(appid, appsecret, true);
+                } else {
+                    sendResponse.setStatus(ResponseCode.FAILED.code);
+                    sendResponse.setMsg(msg);
+                    return sendResponse;
+                }
+            } else {
+                sendResponse.setStatus(ResponseCode.FAILED.code);
+                sendResponse.setMsg("接口无响应");
+                return sendResponse;
+            }
+        }
+        return sendResponse;
+    }
+
+    /**
+     * 获取excel文件导出路径
+     *
+     * @param formCode  表单代码
+     * @param expiresIn 过期时间，单位秒
+     */
+    public SendResponse getExcelExportUrl(String formCode, int expiresIn) {
+        SendResponse sendResponse = new SendResponse();
+
+        int EXEC_COUNT = 0;
+        int MAX_COUNT = 2;
+        while (EXEC_COUNT < MAX_COUNT) {
+            EXEC_COUNT++;
+
+            GetAccessTokenResponse getAccessTokenResponse = getAccessToken(appid, appsecret, false);
+            int getAccessTokenResponseStatus = getAccessTokenResponse.getStatus();
+            if (getAccessTokenResponseStatus == ResponseCode.FAILED.code) {
+                sendResponse.setStatus(ResponseCode.FAILED.code);
+                sendResponse.setMsg(getAccessTokenResponse.getMsg());
+                return sendResponse;
             }
             String accessToken = getAccessTokenResponse.getAccessToken();
             Map<String, Object> params = new HashMap<>();
@@ -202,25 +380,25 @@ public class QmFormClient {
                 if (code == 200) {
                     JSONObject dataJson = resJson.getJSONObject("data");
                     String excelUrl = dataJson.getString("url");
-                    commonResponse.setStatus(ResponseCode.SUCCESS.code);
-                    commonResponse.setMsg(msg);
-                    commonResponse.setData(excelUrl);
-                    return commonResponse;
+                    sendResponse.setStatus(ResponseCode.SUCCESS.code);
+                    sendResponse.setMsg(msg);
+                    sendResponse.setData(excelUrl);
+                    return sendResponse;
                 } else if (code == 301) {
                     //如果服务端返回失效,则强制重新获取
                     getAccessToken(appid, appsecret, true);
                 } else {
-                    commonResponse.setStatus(ResponseCode.FAILED.code);
-                    commonResponse.setMsg(msg);
-                    return commonResponse;
+                    sendResponse.setStatus(ResponseCode.FAILED.code);
+                    sendResponse.setMsg(msg);
+                    return sendResponse;
                 }
             } else {
-                commonResponse.setStatus(ResponseCode.FAILED.code);
-                commonResponse.setMsg("接口无响应");
-                return commonResponse;
+                sendResponse.setStatus(ResponseCode.FAILED.code);
+                sendResponse.setMsg("接口无响应");
+                return sendResponse;
             }
         }
-        return commonResponse;
+        return sendResponse;
     }
 
 }
