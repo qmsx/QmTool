@@ -6,7 +6,7 @@
 
     <groupId>com.quanminshangxian</groupId>
     <artifactId>tool</artifactId>
-    <version>1.1.8</version>
+    <version>1.2.0</version>
     <name>${project.groupId}:${project.artifactId}</name>
     <description>Java encapsulation tool class lib</description>
     <url>https://github.com/qmsx/QmTool</url>

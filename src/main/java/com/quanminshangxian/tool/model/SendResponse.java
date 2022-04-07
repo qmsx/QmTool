@@ -4,7 +4,7 @@ public class SendResponse {
 
     // 1：成功 0：失败
     private int status = 0;
-    private String data;
+    private Object data;
     private String msg = "unknown error";
 
     public int getStatus() {
@@ -15,11 +15,11 @@ public class SendResponse {
         this.status = status;
     }
 
-    public String getData() {
+    public Object getData() {
         return data;
     }
 
-    public void setData(String data) {
+    public void setData(Object data) {
         this.data = data;
     }
 

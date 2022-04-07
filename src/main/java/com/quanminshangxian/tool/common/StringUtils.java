@@ -42,4 +42,26 @@ public class StringUtils {
         return false;
     }
 
+    /**
+     * 截取字符串部分内容
+     *
+     * @param content
+     * @param interceptLen
+     * @return
+     */
+    public static String interceptStr(String content, int interceptLen) {
+        if (content == null) {
+            return null;
+        }
+        if (content.length() <= interceptLen) {
+            return content;
+        }
+        String interceptStr = content.substring(0, interceptLen);
+        if (content.contains(interceptStr)) {
+            return interceptStr;
+        }
+        interceptStr = content.substring(0, interceptLen + 1);
+        return interceptStr;
+    }
+
 }
