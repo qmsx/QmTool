@@ -5,7 +5,7 @@ public class SendResponse {
     // 1：成功 0：失败
     private int status = 0;
     private Object data;
-    private String msg = "unknown error";
+    private String msg;
 
     public int getStatus() {
         return status;

@@ -129,7 +129,7 @@ public class QmSensitiveWordsClient {
                     getAccessToken(appid, appsecret, true);
                 } else if (code == 509) {
                     JSONObject dataJson = resJson.getJSONObject("data");
-                    sendResponse.setStatus(ResponseCode.SUCCESS.code);
+                    sendResponse.setStatus(509);
                     sendResponse.setData(dataJson);
                     return sendResponse;
                 } else {

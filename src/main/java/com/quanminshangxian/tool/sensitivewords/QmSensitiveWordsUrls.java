@@ -2,7 +2,7 @@ package com.quanminshangxian.tool.sensitivewords;
 
 public class QmSensitiveWordsUrls {
 
-    private static final String API_BASE_URL = "http://api.sensitive.words.quanminshangxian.com";
+    private static final String API_BASE_URL = "http://api.sensitivewords.quanminshangxian.com";
 
     //获取accessToken
     static final String GET_ACCESS_TOKEN = API_BASE_URL + "/api/getAccessToken";
