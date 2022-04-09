@@ -6,7 +6,7 @@
 
     <groupId>com.quanminshangxian</groupId>
     <artifactId>tool</artifactId>
-    <version>1.2.0</version>
+    <version>1.2.2</version>
     <name>${project.groupId}:${project.artifactId}</name>
     <description>Java encapsulation tool class lib</description>
     <url>https://github.com/qmsx/QmTool</url>
@@ -125,7 +125,7 @@
 
     <profiles>
         <profile>
-            <id>release</id>
+            <id>RELEASE</id>
             <build>
                 <resources>
                     <resource>
@@ -136,6 +136,13 @@
                     </resource>
                 </resources>
                 <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <skipTests>true</skipTests>
+                        </configuration>
+                    </plugin>
                     <!-- Source -->
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
