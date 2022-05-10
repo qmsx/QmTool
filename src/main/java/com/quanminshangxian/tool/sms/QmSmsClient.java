@@ -55,7 +55,7 @@ public class QmSmsClient {
         JSONObject params = new JSONObject();
         params.put("appid", appid);
         params.put("appsecret", appsecret);
-        String result = HttpUtils.doPostRequest(QmSmsUrls.GET_ACCESS_TOKEN, params.toJSONString());
+        String result = HttpUtils.doPostRequestForJson(QmSmsUrls.GET_ACCESS_TOKEN, params.toJSONString());
         log.info(result);
         if (result != null) {//重试一次
             JSONObject resJson = JSON.parseObject(result);
@@ -116,7 +116,7 @@ public class QmSmsClient {
             params.put("mobile", mobile);
             params.put("var", var);
             String url = String.format(QmSmsUrls.SEND_SMS, accessToken);
-            String result = HttpUtils.doPostRequest(url, params.toJSONString());
+            String result = HttpUtils.doPostRequestForJson(url, params.toJSONString());
             if (!StringUtils.isBlank(result)) {
                 JSONObject resJson = JSON.parseObject(result);
                 int code = resJson.getIntValue("code");

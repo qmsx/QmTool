@@ -60,7 +60,7 @@ public class QmOssClient {
         JSONObject params = new JSONObject();
         params.put("appid", appid);
         params.put("appsecret", appsecret);
-        String result = HttpUtils.doPostRequest(QmOssUrls.GET_ACCESS_TOKEN, params.toJSONString());
+        String result = HttpUtils.doPostRequestForJson(QmOssUrls.GET_ACCESS_TOKEN, params.toJSONString());
         log.info("GET_ACCESS_TOKEN result:" + result);
         if (result != null) {//重试一次
             JSONObject resJson = JSON.parseObject(result);
@@ -128,7 +128,7 @@ public class QmOssClient {
             params.put("name", qmOssBase64RequestParam.getOssName());
             params.put("data", qmOssBase64RequestParam.getBase64());
             String uploadUrl = String.format(QmOssUrls.UPLOAD_BASE64, accessToken);
-            String result = HttpUtils.doPostRequest(uploadUrl, params.toJSONString());
+            String result = HttpUtils.doPostRequestForJson(uploadUrl, params.toJSONString());
             log.info("uploadBase64 result:" + result);
             if (!StringUtils.isBlank(result)) {
                 JSONObject resJson = JSON.parseObject(result);
@@ -205,7 +205,7 @@ public class QmOssClient {
             Map<String, String> params = new HashMap<>();
             params.put("accessAuth", qmOssFileRequestParam.getAccessAuth());
             params.put("parentId", parentId);
-            String result = HttpUtils.multiFormDataUpload(uploadUrl, filePath, params);
+            String result = HttpUtils.multiFormDataUpload(uploadUrl, filePath, params, null);
             log.info("uploadMultipart result:" + result);
             if (!StringUtils.isBlank(result)) {
                 JSONObject resJson = JSON.parseObject(result);
@@ -325,7 +325,7 @@ public class QmOssClient {
         params.put("chunkNumber", String.valueOf(chunkNumber));
         params.put("totalChunks", String.valueOf(totalChunks));
         params.put("totalSize", String.valueOf(totalSize));
-        String result = HttpUtils.multiFormDataUpload(chunkUploadUrl, chunkFilePath, params);
+        String result = HttpUtils.multiFormDataUpload(chunkUploadUrl, chunkFilePath, params, null);
         log.info("uploadChunk result:" + result);
         if (!StringUtils.isBlank(result)) {
             JSONObject resJson = JSON.parseObject(result);
@@ -387,7 +387,7 @@ public class QmOssClient {
         JSONObject params = new JSONObject();
         params.put("ossId", ossId);
         params.put("expireIn", String.valueOf(expireIn));
-        String result = HttpUtils.doPostRequest(getNetUrl, params.toJSONString());
+        String result = HttpUtils.doPostRequestForJson(getNetUrl, params.toJSONString());
         log.info("getOssNetUrl result:" + result);
         if (!StringUtils.isBlank(result)) {
             JSONObject resJson = JSON.parseObject(result);
@@ -439,7 +439,7 @@ public class QmOssClient {
         JSONObject params = new JSONObject();
         params.put("ossId", ossId);
         params.put("ossName", ossName);
-        String result = HttpUtils.doPostRequest(renameUrl, params.toJSONString());
+        String result = HttpUtils.doPostRequestForJson(renameUrl, params.toJSONString());
         log.info("rename result:" + result);
         if (!StringUtils.isBlank(result)) {
             JSONObject resJson = JSON.parseObject(result);
@@ -487,7 +487,7 @@ public class QmOssClient {
         String deleteUrl = String.format(QmOssUrls.DELETE_URL, accessToken);
         JSONObject params = new JSONObject();
         params.put("ossId", ossId);
-        String result = HttpUtils.doPostRequest(deleteUrl, params.toJSONString());
+        String result = HttpUtils.doPostRequestForJson(deleteUrl, params.toJSONString());
         log.info("delete result:" + result);
         if (!StringUtils.isBlank(result)) {
             JSONObject resJson = JSON.parseObject(result);

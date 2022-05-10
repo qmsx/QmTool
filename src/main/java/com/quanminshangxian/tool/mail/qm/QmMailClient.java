@@ -58,7 +58,7 @@ public final class QmMailClient {
         JSONObject params = new JSONObject();
         params.put("appid", appid);
         params.put("appsecret", appsecret);
-        String result = HttpUtils.doPostRequest(QmMailUrls.GET_ACCESS_TOKEN, params.toJSONString());
+        String result = HttpUtils.doPostRequestForJson(QmMailUrls.GET_ACCESS_TOKEN, params.toJSONString());
         log.info("GET_ACCESS_TOKEN result:" + result);
         if (result != null) {//重试一次
             JSONObject resJson = JSON.parseObject(result);
@@ -122,7 +122,7 @@ public final class QmMailClient {
             params.put("subject", subject);
             params.put("content", content);
             String url = String.format(QmMailUrls.SEND_EMAIL, accessToken);
-            String result = HttpUtils.doPostRequest(url, params.toJSONString());
+            String result = HttpUtils.doPostRequestForJson(url, params.toJSONString());
             log.info("send email result:" + result);
             if (!StringUtils.isBlank(result)) {
                 JSONObject resJson = JSON.parseObject(result);
@@ -177,7 +177,7 @@ public final class QmMailClient {
             params.put("receiveMail", receiveEmail);
             params.put("var", var);
             String url = String.format(QmMailUrls.SEND_TPL_EMAIL, accessToken);
-            String result = HttpUtils.doPostRequest(url, params.toJSONString());
+            String result = HttpUtils.doPostRequestForJson(url, params.toJSONString());
             if (!StringUtils.isBlank(result)) {
                 JSONObject resJson = JSON.parseObject(result);
                 int code = resJson.getIntValue("code");

@@ -31,6 +31,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class HttpUtils {
 
@@ -78,11 +79,17 @@ public class HttpUtils {
     /**
      * get request
      */
-    public static String doGetRequest(String url) {
+    public static String doGetRequest(String url, Map<String, String> headerMap) {
         log.info("start request {}", url);
         HttpGet httpRequest = new HttpGet(url);
         CloseableHttpResponse httpResponse = null;
         try {
+            if (headerMap != null) {
+                Set<String> keySet = headerMap.keySet();
+                for (String key : keySet) {
+                    httpRequest.setHeader(key, headerMap.get(key));
+                }
+            }
             httpResponse = getHttpClient().execute(httpRequest);
             int status = httpResponse.getStatusLine().getStatusCode();
             if (status >= 200 && status < 300) {
@@ -108,11 +115,17 @@ public class HttpUtils {
     /**
      * send post request
      */
-    public static String doPostRequest(String url, Map<String, String> params) {
+    public static String doPostRequest(String url, Map<String, String> params, Map<String, String> headerMap) {
         log.info("start request {}", url);
         HttpPost httpRequest = new HttpPost(url);
         CloseableHttpResponse httpResponse = null;
         try {
+            if (headerMap != null) {
+                Set<String> keySet = headerMap.keySet();
+                for (String key : keySet) {
+                    httpRequest.setHeader(key, headerMap.get(key));
+                }
+            }
             List<NameValuePair> list = new ArrayList<NameValuePair>();
             for (String key : params.keySet()) {
                 list.add(new BasicNameValuePair(key, params.get(key)));
@@ -143,11 +156,17 @@ public class HttpUtils {
     /**
      * send post request
      */
-    public static String doPostRequest(String url, String params) {
+    public static String doPostRequest(String url, String params, Map<String, String> headerMap) {
         log.info("start request {}", url);
         HttpPost httpRequest = new HttpPost(url);
         CloseableHttpResponse httpResponse = null;
         try {
+            if (headerMap != null) {
+                Set<String> keySet = headerMap.keySet();
+                for (String key : keySet) {
+                    httpRequest.setHeader(key, headerMap.get(key));
+                }
+            }
             if (params != null) {
                 httpRequest.setEntity(new StringEntity(params, "UTF-8"));
             }
@@ -213,11 +232,17 @@ public class HttpUtils {
      * @param url
      * @return
      */
-    public static String doPutRequest(String url, String params) {
+    public static String doPutRequest(String url, String params, Map<String, String> headerMap) {
         log.info("start request {}", url);
         HttpPut httpRequest = new HttpPut(url);
         CloseableHttpResponse httpResponse = null;
         try {
+            if (headerMap != null) {
+                Set<String> keySet = headerMap.keySet();
+                for (String key : keySet) {
+                    httpRequest.setHeader(key, headerMap.get(key));
+                }
+            }
             if (params != null) {
                 httpRequest.setEntity(new StringEntity(params, "UTF-8"));
             }
@@ -249,11 +274,17 @@ public class HttpUtils {
      * @param url
      * @return
      */
-    public static String doDeleteRequest(String url) {
+    public static String doDeleteRequest(String url, Map<String, String> headerMap) {
         log.info("start request {}", url);
         HttpDelete httpRequest = new HttpDelete(url);
         CloseableHttpResponse httpResponse = null;
         try {
+            if (headerMap != null) {
+                Set<String> keySet = headerMap.keySet();
+                for (String key : keySet) {
+                    httpRequest.setHeader(key, headerMap.get(key));
+                }
+            }
             httpResponse = getHttpClient().execute(httpRequest);
             int status = httpResponse.getStatusLine().getStatusCode();
             if (status >= 200 && status < 300) {
@@ -279,11 +310,17 @@ public class HttpUtils {
     /**
      * multipart/form-data 上传
      */
-    public static String multiFormDataUpload(String url, String filePath, Map<String, String> params) {
+    public static String multiFormDataUpload(String url, String filePath, Map<String, String> params, Map<String, String> headerMap) {
         log.info("start request {}", url);
         HttpPost httpRequest = new HttpPost(url);
         CloseableHttpResponse httpResponse = null;
         try {
+            if (headerMap != null) {
+                Set<String> keySet = headerMap.keySet();
+                for (String key : keySet) {
+                    httpRequest.setHeader(key, headerMap.get(key));
+                }
+            }
             String fileName = filePath.substring(filePath.lastIndexOf("/") + 1);
             //处理文件 后面的setMode是用来解决文件名称乱码的问题:以浏览器兼容模式运行，防止文件名乱码。
             MultipartEntityBuilder builder = MultipartEntityBuilder.create().setMode(HttpMultipartMode.BROWSER_COMPATIBLE);

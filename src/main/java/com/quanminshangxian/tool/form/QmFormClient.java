@@ -189,7 +189,7 @@ public class QmFormClient {
             params.put("dataCombType", String.valueOf(qmFormImpTextRequestParam.getDataCombType()));
             params.put("separator", qmFormImpTextRequestParam.getSeparator());
             params.put("filePath", qmFormImpTextRequestParam.getFilePath());
-            String result = HttpUtils.multiFormDataUpload(uploadUrl, filePath, params);
+            String result = HttpUtils.multiFormDataUpload(uploadUrl, filePath, params, null);
             log.info("uploadMultipart result:" + result);
             if (!StringUtils.isBlank(result)) {
                 JSONObject resJson = JSON.parseObject(result);
@@ -253,7 +253,7 @@ public class QmFormClient {
             params.put("dataCombType", String.valueOf(qmFormImpExcelRequestParam.getDataCombType()));
             params.put("separator", qmFormImpExcelRequestParam.getSeparator());
             params.put("filePath", qmFormImpExcelRequestParam.getFilePath());
-            String result = HttpUtils.multiFormDataUpload(uploadUrl, filePath, params);
+            String result = HttpUtils.multiFormDataUpload(uploadUrl, filePath, params, null);
             log.info("uploadMultipart result:" + result);
             if (!StringUtils.isBlank(result)) {
                 JSONObject resJson = JSON.parseObject(result);

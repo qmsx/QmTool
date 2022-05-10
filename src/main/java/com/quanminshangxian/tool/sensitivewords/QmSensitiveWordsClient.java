@@ -56,7 +56,7 @@ public class QmSensitiveWordsClient {
         JSONObject params = new JSONObject();
         params.put("appid", appid);
         params.put("appsecret", appsecret);
-        String result = HttpUtils.doPostRequest(QmSensitiveWordsUrls.GET_ACCESS_TOKEN, params.toJSONString());
+        String result = HttpUtils.doPostRequestForJson(QmSensitiveWordsUrls.GET_ACCESS_TOKEN, params.toJSONString());
         log.info(result);
         if (result != null) {//重试一次
             JSONObject resJson = JSON.parseObject(result);
@@ -115,7 +115,7 @@ public class QmSensitiveWordsClient {
             JSONObject params = new JSONObject();
             params.put("content", content);
             String url = String.format(QmSensitiveWordsUrls.WORD_CHECK, accessToken);
-            String result = HttpUtils.doPostRequest(url, params.toJSONString());
+            String result = HttpUtils.doPostRequestForJson(url, params.toJSONString());
             if (!StringUtils.isBlank(result)) {
                 JSONObject resJson = JSON.parseObject(result);
                 int code = resJson.getIntValue("code");
