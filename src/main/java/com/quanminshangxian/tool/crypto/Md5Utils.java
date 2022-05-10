@@ -16,30 +16,25 @@ public class Md5Utils {
      * @param content
      * @return
      */
-    public static String getMd5(final String content) {
-        try {
-            MessageDigest md = MessageDigest.getInstance("MD5");
-            md.update(content.getBytes());
-            byte b[] = md.digest();
+    public static String getMd5(final String content) throws NoSuchAlgorithmException {
+        MessageDigest md = MessageDigest.getInstance("MD5");
+        md.update(content.getBytes());
+        byte[] b = md.digest();
 
-            int i;
+        int i;
 
-            StringBuffer buf = new StringBuffer("");
-            for (int offset = 0; offset < b.length; offset++) {
-                i = b[offset];
-                if (i < 0) {
-                    i += 256;
-                }
-                if (i < 16) {
-                    buf.append("0");
-                }
-                buf.append(Integer.toHexString(i));
+        StringBuilder buf = new StringBuilder("");
+        for (int offset = 0; offset < b.length; offset++) {
+            i = b[offset];
+            if (i < 0) {
+                i += 256;
             }
-            return buf.toString();
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-            throw new RuntimeException("md5 encryption failure");
+            if (i < 16) {
+                buf.append("0");
+            }
+            buf.append(Integer.toHexString(i));
         }
+        return buf.toString();
     }
 
 }

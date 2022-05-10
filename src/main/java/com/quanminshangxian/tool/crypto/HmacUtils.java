@@ -3,6 +3,8 @@ package com.quanminshangxian.tool.crypto;
 import javax.crypto.Mac;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 
 /**
  * HMAC(Hash Message Authentication Code，散列消息鉴别码)
@@ -12,7 +14,7 @@ import javax.crypto.spec.SecretKeySpec;
 public class HmacUtils {
 
     private static final String ALGORITHM_MAC = "HmacMD5";
-    
+
     /**
      * HMAC加密
      *
@@ -20,17 +22,12 @@ public class HmacUtils {
      * @param content 待加密内容
      * @return String
      */
-    public static byte[] HMACEncrypt(final String key, final String content) {
-        try {
-            SecretKey secretKey = new SecretKeySpec(key.getBytes(), ALGORITHM_MAC);
-            Mac mac = Mac.getInstance(secretKey.getAlgorithm());
-            //初始化mac
-            mac.init(secretKey);
-            return mac.doFinal(content.getBytes());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
+    public static byte[] HMACEncrypt(final String key, final String content) throws NoSuchAlgorithmException, InvalidKeyException {
+        SecretKey secretKey = new SecretKeySpec(key.getBytes(), ALGORITHM_MAC);
+        Mac mac = Mac.getInstance(secretKey.getAlgorithm());
+        //初始化mac
+        mac.init(secretKey);
+        return mac.doFinal(content.getBytes());
     }
 
 }

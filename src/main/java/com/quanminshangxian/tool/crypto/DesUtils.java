@@ -1,11 +1,12 @@
 package com.quanminshangxian.tool.crypto;
 
-import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
+import javax.crypto.*;
 import javax.crypto.spec.DESKeySpec;
+import java.security.InvalidKeyException;
 import java.security.Key;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.spec.InvalidKeySpecException;
 
 /**
  * DES(Data Encryption Standard) 对称加密/解密
@@ -28,7 +29,7 @@ public class DesUtils {
      * @param content 待加密内容
      * @return byte[]
      */
-    public static byte[] DESEncrypt(final String key, final String content) {
+    public static byte[] DESEncrypt(final String key, final String content) throws NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException, NoSuchPaddingException, BadPaddingException, IllegalBlockSizeException {
         return processCipher(content.getBytes(), getSecretKey(key), Cipher.ENCRYPT_MODE, ALGORITHM_DES);
     }
 
@@ -39,7 +40,7 @@ public class DesUtils {
      * @param encoderContent 已加密内容
      * @return byte[]
      */
-    public static byte[] DESDecrypt(final String key, final byte[] encoderContent) {
+    public static byte[] DESDecrypt(final String key, final byte[] encoderContent) throws NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException, NoSuchPaddingException, BadPaddingException, IllegalBlockSizeException {
         return processCipher(encoderContent, getSecretKey(key), Cipher.DECRYPT_MODE, ALGORITHM_DES);
     }
 
@@ -49,16 +50,10 @@ public class DesUtils {
      * @param key 给定key,要求key至少长度为8个字符
      * @return SecretKey
      */
-    public static SecretKey getSecretKey(final String key) {
-        try {
-            DESKeySpec desKeySpec = new DESKeySpec(key.getBytes());
-            SecretKeyFactory instance = SecretKeyFactory.getInstance(ALGORITHM_DES);
-            return instance.generateSecret(desKeySpec);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return null;
+    public static SecretKey getSecretKey(final String key) throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException {
+        DESKeySpec desKeySpec = new DESKeySpec(key.getBytes());
+        SecretKeyFactory instance = SecretKeyFactory.getInstance(ALGORITHM_DES);
+        return instance.generateSecret(desKeySpec);
     }
 
     /**
@@ -71,16 +66,12 @@ public class DesUtils {
      * @return byte[]
      */
     private static byte[] processCipher(final byte[] processData, final Key key,
-                                        final int opsMode, final String algorithm) {
-        try {
-            Cipher cipher = Cipher.getInstance(algorithm);
-            //初始化
-            cipher.init(opsMode, key, secureRandom);
-            return cipher.doFinal(processData);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
+                                        final int opsMode, final String algorithm)
+            throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+        Cipher cipher = Cipher.getInstance(algorithm);
+        //初始化
+        cipher.init(opsMode, key, secureRandom);
+        return cipher.doFinal(processData);
     }
 
 }

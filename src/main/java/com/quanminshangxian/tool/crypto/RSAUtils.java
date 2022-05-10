@@ -4,7 +4,10 @@ import com.quanminshangxian.tool.form.QmFormClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import java.security.*;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
@@ -15,7 +18,6 @@ import java.security.interfaces.RSAPublicKey;
  * 非对称加密算法的典型代表，既能加密、又能解密。和对称加密算法比如DES的明显区别在于用于加密、解密的密钥是不同的。使用RSA算法，只要密钥足够长(一般要求1024bit)，加密的信息是不能被破解的。
  */
 public class RSAUtils {
-    private static final Logger log = LoggerFactory.getLogger(RSAUtils.class);
 
     private static final String ALGORITHM_RSA = "rsa";
     private static final String ALGORITHM_MD5_RSA = "MD5withRSA";
@@ -32,6 +34,7 @@ public class RSAUtils {
             keyPair = keyPairGenerator.generateKeyPair();
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
+            throw new RuntimeException("rsa init error");
         }
     }
 
@@ -58,16 +61,11 @@ public class RSAUtils {
      *
      * @return byte[]
      */
-    public static byte[] getSignature(final byte[] encoderContent) {
-        try {
-            Signature signature = Signature.getInstance(ALGORITHM_MD5_RSA);
-            signature.initSign(keyPair.getPrivate());
-            signature.update(encoderContent);
-            return signature.sign();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
+    public static byte[] getSignature(final byte[] encoderContent) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+        Signature signature = Signature.getInstance(ALGORITHM_MD5_RSA);
+        signature.initSign(keyPair.getPrivate());
+        signature.update(encoderContent);
+        return signature.sign();
     }
 
     /**
@@ -75,16 +73,11 @@ public class RSAUtils {
      *
      * @return byte[]
      */
-    public static boolean verifySignature(final byte[] encoderContent, final byte[] signContent) {
-        try {
-            Signature signature = Signature.getInstance(ALGORITHM_MD5_RSA);
-            signature.initVerify(keyPair.getPublic());
-            signature.update(encoderContent);
-            return signature.verify(signContent);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return Boolean.FALSE;
+    public static boolean verifySignature(final byte[] encoderContent, final byte[] signContent) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+        Signature signature = Signature.getInstance(ALGORITHM_MD5_RSA);
+        signature.initVerify(keyPair.getPublic());
+        signature.update(encoderContent);
+        return signature.verify(signContent);
     }
 
     /**
@@ -93,7 +86,7 @@ public class RSAUtils {
      * @param content 待加密内容
      * @return byte[]
      */
-    public static byte[] encrypt(final String content) {
+    public static byte[] encrypt(final String content) throws IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException {
         return processCipher(content.getBytes(), keyPair.getPrivate(), Cipher.ENCRYPT_MODE, ALGORITHM_RSA);
     }
 
@@ -103,7 +96,7 @@ public class RSAUtils {
      * @param encoderContent 已加密内容
      * @return byte[]
      */
-    public static byte[] decrypt(final byte[] encoderContent) {
+    public static byte[] decrypt(final byte[] encoderContent) throws IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException {
         return processCipher(encoderContent, keyPair.getPublic(), Cipher.DECRYPT_MODE, ALGORITHM_RSA);
     }
 
@@ -117,16 +110,12 @@ public class RSAUtils {
      * @return byte[]
      */
     private static byte[] processCipher(final byte[] processData, final Key key,
-                                        final int opsMode, final String algorithm) {
-        try {
-            Cipher cipher = Cipher.getInstance(algorithm);
-            //初始化
-            cipher.init(opsMode, key, secureRandom);
-            return cipher.doFinal(processData);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
+                                        final int opsMode, final String algorithm)
+            throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+        Cipher cipher = Cipher.getInstance(algorithm);
+        //初始化
+        cipher.init(opsMode, key, secureRandom);
+        return cipher.doFinal(processData);
     }
 
     /**
@@ -141,8 +130,6 @@ public class RSAUtils {
         // 得到私钥字符串
         String privateKeyString = new String(Base64Utils.encode(new String(privateKey.getEncoded())));
         // 将公钥和私钥保存到Map
-        log.info("publicKey:" + publicKeyString);
-        log.info("privateKey:" + privateKeyString);
         return new String[]{
                 publicKeyString,
                 privateKeyString

@@ -22,6 +22,7 @@ public class FileUtilsTests {
         boolean b12 = FileUtils.copyFile("F:\\1.jpg", "F:\\sjw\\5.jpg");
         Assert.assertTrue(b12);
     }
+
     @Test
     public void downloadNetworkFile() throws IOException {
         boolean b = FileUtils.downloadNetworkFile("https://img.alicdn.com/imgextra/i3/326997967/TB2vpmgrr1YBuNjSszhXXcUsFXa_!!326997967.jpg", "F:\\sjw\\10.jpg");
@@ -30,10 +31,11 @@ public class FileUtilsTests {
     }
 
     @Test
-    public void toBase64(){
+    public void toBase64() throws IOException {
         File file = new File("F:\\sjw\\test\\12.txt");
         String s = FileUtils.toBase64(file);
         System.out.println(s);
     }
+
 }
 
