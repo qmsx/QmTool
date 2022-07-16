@@ -6,7 +6,7 @@
 
     <groupId>com.quanminshangxian</groupId>
     <artifactId>tool</artifactId>
-    <version>1.2.2</version>
+    <version>1.2.3</version>
     <name>${project.groupId}:${project.artifactId}</name>
     <description>Java encapsulation tool class lib</description>
     <url>https://github.com/qmsx/QmTool</url>
@@ -33,7 +33,7 @@
     </developers>
 
     <properties>
-        <com.alibaba.fastjson.version>1.2.72</com.alibaba.fastjson.version>
+        <com.alibaba.fastjson.version>1.2.83</com.alibaba.fastjson.version>
         <org.apache.httpcomponents.version>4.5.13</org.apache.httpcomponents.version>
         <com.sun.mail.version>1.6.1</com.sun.mail.version>
         <org.slf4j.version>1.7.25</org.slf4j.version>
